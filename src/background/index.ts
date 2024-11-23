@@ -27,6 +27,32 @@ const setIconEnabled = async (tabId: number) => {
   await chrome.action.enable(tabId)
 }
 
+// 检查并注入 content script
+const ensureContentScript = async (tabId: number) => {
+  try {
+    // 检查 content script 是否已注入
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => window.hasOwnProperty('__READMODE_CONTENT_LOADED__')
+    })
+
+    // 如果未注入，则注入脚本
+    if (!results[0].result) {
+      logger.debug(`Injecting content script into tab ${tabId}`)
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        files: ['content/index.js']
+      })
+      // 等待脚本加载
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+    return true
+  } catch (error) {
+    logger.error(`Failed to ensure content script in tab ${tabId}:`, error)
+    return false
+  }
+}
+
 // 监听标签页更新事件
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "loading") {
@@ -38,17 +64,18 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 })
 
-// 监听标签页激活事件，确保切换标签时图标状态正确
+// 修改标签页激活事件监听器
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   const tab = await chrome.tabs.get(tabId)
   if (tab.status === "complete") {
+    await ensureContentScript(tabId)
     setIconEnabled(tabId)
   } else {
     setIconDisabled(tabId)
   }
 })
 
-// 添加图标点击事件监听
+// 修改图标点击事件监听器
 chrome.action.onClicked.addListener(async (tab) => {
   logger.info(`Icon clicked on tab ${tab.id}`)
   
@@ -58,18 +85,13 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 
   try {
-    logger.debug(`Checking if content script is injected in tab ${tab.id}`)
-    // 先检查 content script 是否已注入
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: () => {
-        console.log("Content script check executed")
-        return true
-      }
-    })
-    logger.debug(`Content script check passed for tab ${tab.id}`)
+    // 确保 content script 已注入
+    const isInjected = await ensureContentScript(tab.id)
+    if (!isInjected) {
+      throw new Error("Failed to ensure content script")
+    }
 
-    // 然后发送消息
+    // 发送消息解析内容
     logger.debug(`Sending PARSE_CONTENT message to tab ${tab.id}`)
     const response = await chrome.tabs.sendMessage(tab.id, { type: "PARSE_CONTENT" })
     
