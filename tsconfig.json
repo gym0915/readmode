@@ -14,6 +14,9 @@
         "./*"
       ]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
+    "types": [
+      // 检查是否有 "@types/sharp"
+    ]
   }
 }

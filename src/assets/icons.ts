@@ -1,0 +1,11 @@
+import icon16 from "data-base64:./icons/icon-16.png"
+import icon32 from "data-base64:./icons/icon-32.png"
+import icon16Gray from "data-base64:./icons/icon-16-gray.png"
+import icon32Gray from "data-base64:./icons/icon-32-gray.png"
+
+export const icons = {
+  "16": icon16,
+  "32": icon32,
+  "16-gray": icon16Gray,
+  "32-gray": icon32Gray
+} 
