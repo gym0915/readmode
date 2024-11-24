@@ -3,6 +3,9 @@ import { createLogger } from "~/utils/logger"
 
 const logger = createLogger("background")
 
+// 添加缓存存储
+const articleCache = new Map<number, any>()
+
 // 设置图标为灰色且禁用
 const setIconDisabled = async (tabId: number) => {
   await chrome.action.setIcon({
@@ -58,6 +61,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "loading") {
     logger.debug(`Tab ${tabId} is loading, setting icon to disabled`)
     setIconDisabled(tabId)
+    // 清理缓存
+    if (articleCache.has(tabId)) {
+      logger.debug(`Cleaning up cache for reloaded tab ${tabId}`)
+      articleCache.delete(tabId)
+    }
   } else if (changeInfo.status === "complete") {
     logger.debug(`Tab ${tabId} completed loading, setting icon to enabled`)
     setIconEnabled(tabId)
@@ -91,24 +99,46 @@ chrome.action.onClicked.addListener(async (tab) => {
       throw new Error("Failed to ensure content script")
     }
 
-    // 发送消息解析内容
+    // 检查缓存
+    const cachedArticle = articleCache.get(tab.id)
+    if (cachedArticle) {
+      logger.debug(`Using cached article for tab ${tab.id}`)
+      // 直接发送切换阅读模式的消息
+      const response = await chrome.tabs.sendMessage(tab.id, { 
+        type: "TOGGLE_READER_MODE",
+        article: cachedArticle 
+      })
+      return
+    }
+
+    // 如果没有缓存，则解析内容
     logger.debug(`Sending PARSE_CONTENT message to tab ${tab.id}`)
     const response = await chrome.tabs.sendMessage(tab.id, { type: "PARSE_CONTENT" })
     
     if (response.error) {
       logger.error(`Error from content script: ${response.error}`)
     } else {
+      // 存储解析结果到缓存
+      articleCache.set(tab.id, response.data)
       logger.info(`Successfully parsed content for tab ${tab.id}`)
       logger.info('Parsed article content:', {
-        title: response.title,
-        byline: response.byline,
-        length: response.content?.length || 0,
-        excerpt: response.excerpt || response.content?.substring(0, 150) + '...',
-        ...response
+        title: response.data.title,
+        byline: response.data.byline,
+        length: response.data.content?.length || 0,
+        excerpt: response.data.excerpt || response.data.content?.substring(0, 150) + '...',
+        ...response.data
       })
     }
   } catch (error) {
     logger.error(`Failed to execute action:`, error)
+  }
+})
+
+// 添加标签页关闭事件监听器
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (articleCache.has(tabId)) {
+    logger.debug(`Cleaning up cache for closed tab ${tabId}`)
+    articleCache.delete(tabId)
   }
 })
 
