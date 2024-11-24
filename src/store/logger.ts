@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { LoggerConfig } from '~/types/logger'
+import type { LoggerConfig } from '~/shared/types/logger'
 
 interface LoggerState {
   config: LoggerConfig

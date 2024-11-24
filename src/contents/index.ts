@@ -1,5 +1,5 @@
 import { Readability } from "@mozilla/readability"
-import { createLogger } from "~/utils/logger"
+import { createLogger } from "~/shared/utils/logger"
 
 const logger = createLogger("content")
 

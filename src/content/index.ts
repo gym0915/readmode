@@ -1,4 +1,4 @@
-import { createLogger } from "~/utils/logger"
+import { createLogger } from "~/shared/utils/logger"
 import { Readability } from '@mozilla/readability'
 
 const logger = createLogger("content")
@@ -67,7 +67,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         throw new Error("Failed to parse article content")
       }
 
-      // 处理阅读模式并获���新状态
+      // 处理阅读模式并获新状态
       const isReaderMode = handleReaderMode(article)
 
       // 打印解析结果

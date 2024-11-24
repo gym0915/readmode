@@ -57,42 +57,28 @@
             - IndexedDB：大量结构化数据存储
 
 src/
-├── manifest.json
-├── background/
-│   └── index.ts                 # 后台服务
-├── content/
-│   ├── index.tsx                # content script 入口
-│   ├── components/
-│   │   ├── Reader/             # 阅读模式核心组件
-│   │   │   ├── index.tsx
-│   │   │   ├── Toolbar.tsx
-│   │   │   └── Content.tsx
-│   │   └── Settings/           # 设置面板组件
-│   │       ├── index.tsx
-│   │       ├── FontSettings.tsx
-│   │       └── ThemeSettings.tsx
-│   ├── hooks/
-│   │   ├── useReader.ts        # 阅读模式相关逻辑
-│   │   ├── useAnimation.ts     # 动画效果
-│   │   └── useStorage.ts       # 存储相关
-│   └── utils/
-│       ├── parser.ts           # 文章解析
-│       ├── storage.ts          # 存储工具
-│       └── animation.ts        # 动画工具
-├── options/
-│   ├── index.tsx               # 配置页面
-│   └── components/
-├── store/
-│   ├── reader.ts               # 阅读状态管理
-│   └── settings.ts             # 设置状态管理
-└── types/
-│    └── index.ts                # 类型定义
-├── public/
-│   ├── assets/
-│   ├── icons/
-│   └── styles/
-└── iframe/
-    └── reader.html            # 阅读模式 iframe 页面
+├── modules/               # 功能模块目录
+│   ├── reader/            # 阅读模式核心功能
+│   │   ├── components/    # 阅读器相关组件
+│   │   ├── services/      # 阅读处理服务
+│   │   ├── hooks/         # 自定义 hooks
+│   │   └── types.ts       # 类型定义
+│   ├── theme/             # 主题管理模块
+│   │   ├── services/      # 主题服务
+│   │   ├── constants/     # 主题常量
+│   │   └── types.ts       # 类型定义
+│   └── settings/          # 设置管理模块
+│       ├── components/    # 设置界面组件
+│       ├── services/      # 设置服务
+│       └── types.ts       # 类型定义
+├── core/                  # 核心功能
+│   ├── messaging/         # 消息通信
+│   ├── storage/          # 存储管理
+│   └── error-handling/   # 错误处理
+└── shared/               # 共享资源
+    ├── constants/        # 全局常量
+    ├── types/           # 共享类型
+    └── utils/           # 工具函数
 
 
 ### 关键目录说明

@@ -1,5 +1,5 @@
 import { icons } from "~/assets/icons"
-import { createLogger } from "~/utils/logger"
+import { createLogger } from "~/shared/utils/logger"
 
 const logger = createLogger("background")
 

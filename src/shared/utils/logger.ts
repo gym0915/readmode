@@ -1,5 +1,5 @@
 import { useLoggerStore } from '~/store/logger'
-import type { LogLevel, LogEntry } from '~/types/logger'
+import type { LogLevel, LogEntry } from '~/shared/types/logger'
 
 export class Logger {
   private module: string
