@@ -1,5 +1,5 @@
 import { createLogger } from "~/shared/utils/logger"
-import type { IArticle } from "../types/article.types"
+import type { IArticle } from "~/modules/reader/types/article.types"
 
 const logger = createLogger("article-cache")
 
