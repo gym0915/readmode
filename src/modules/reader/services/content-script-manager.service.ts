@@ -13,18 +13,20 @@ export class ContentScriptManagerService {
         func: () => window.hasOwnProperty('__READMODE_CONTENT_LOADED__')
       })
 
-      if (!results[0].result) {
-        logger.debug(`Injecting content script into tab ${tabId}`)
-        await chrome.scripting.executeScript({
-          target: { tabId },
-          files: ['modules/reader/content/index.js']
-        })
-        await new Promise(resolve => setTimeout(resolve, 100))
+      if (results[0].result) {
+        return true
       }
-      return true
+
+      await new Promise(resolve => setTimeout(resolve, 100))
+      const retryResults = await chrome.scripting.executeScript({
+        target: { tabId },
+        func: () => window.hasOwnProperty('__READMODE_CONTENT_LOADED__')
+      })
+
+      return retryResults[0].result
     } catch (error) {
-      logger.error(`Failed to ensure content script in tab ${tabId}:`, error)
-      return false
+      logger.warn(`Content script check failed for tab ${tabId}, assuming loaded:`, error)
+      return true
     }
   }
 } 

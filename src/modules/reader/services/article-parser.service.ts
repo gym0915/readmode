@@ -24,9 +24,22 @@ export class ArticleParserService {
         throw new Error('Failed to parse article content')
       }
 
-      logger.info('Successfully parsed article:', {
+      logger.info('Article parsed successfully:', {
         title: article.title,
-        length: article.content?.length || 0
+        byline: article.byline || 'Unknown author',
+        siteName: article.siteName,
+        excerpt: article.excerpt,
+        contentLength: article.content?.length || 0,
+        textLength: article.textContent?.length || 0,
+        direction: article.dir || 'ltr',
+        timestamp: new Date().toISOString()
+      })
+
+      logger.debug('Article content details:', {
+        titleLength: article.title?.length || 0,
+        hasMetadata: !!article.byline || !!article.siteName,
+        excerptLength: article.excerpt?.length || 0,
+        contentPreview: article.textContent?.slice(0, 150) + '...'
       })
 
       return {
@@ -39,7 +52,11 @@ export class ArticleParserService {
         siteName: article.siteName
       }
     } catch (error) {
-      logger.error('Error parsing document:', error)
+      logger.error('Error parsing document:', {
+        error,
+        url: document.URL,
+        timestamp: new Date().toISOString()
+      })
       throw error
     }
   }
