@@ -25,8 +25,8 @@ export class ReaderFrameService {
       border: none;
       background: #F8F9FA;
       z-index: 2147483647;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+      opacity: 0.5;
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       will-change: opacity;
     `
     return frame
@@ -49,15 +49,17 @@ export class ReaderFrameService {
     
     if (existingFrame && !show) {
       existingFrame.style.opacity = '0'
-      setTimeout(() => existingFrame.remove(), 300)
+      setTimeout(() => existingFrame.remove(), 400)
       logger.debug('Reader frame removed')
       return false
     } else if (!existingFrame && show) {
       const frame = this.createFrame()
       document.body.appendChild(frame)
-      requestAnimationFrame(() => {
-        frame.style.opacity = '1'
-      })
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          frame.style.opacity = '1'
+        })
+      }, 0)
       logger.debug('Reader frame created')
       return true
     }
