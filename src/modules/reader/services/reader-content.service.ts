@@ -7,12 +7,16 @@ import { createLogger } from '~/shared/utils/logger'
 import { ReaderFrameService } from './reader-frame.service'
 import { ArticleParserService } from './article-parser.service'
 import type { IArticle } from '~/modules/reader/types/article.types'
+import * as React from 'react'
+import { createRoot } from 'react-dom/client'
+import { ArticleCard } from '../components/ArticleCard'
 
 const logger = createLogger('reader-content')
 
 export class ReaderContentService {
   private frameService: ReaderFrameService
   private parserService: ArticleParserService
+  private root: HTMLDivElement | null = null
 
   constructor() {
     this.frameService = new ReaderFrameService()
@@ -44,6 +48,16 @@ export class ReaderContentService {
   }
 
   /**
+   * 清理 React 根节点
+   */
+  private cleanupRoot(): void {
+    if (this.root) {
+      document.body.removeChild(this.root)
+      this.root = null
+    }
+  }
+
+  /**
    * 处理内容解析请求
    */
   private async handleParseContent(sendResponse: (response: any) => void): Promise<void> {
@@ -56,6 +70,15 @@ export class ReaderContentService {
       const article = await this.parserService.parseDocument(document)
       const isReaderMode = this.frameService.toggleFrame(true)
       
+      // 创建并渲染 ArticleCard
+      this.cleanupRoot()
+      this.root = document.createElement('div')
+      this.root.id = 'reader-root'
+      document.body.appendChild(this.root)
+      
+      const reactRoot = createRoot(this.root)
+      reactRoot.render(React.createElement(ArticleCard, { article }))
+
       logger.info('Content parsing completed:', {
         title: article.title,
         author: article.byline || 'Unknown',
@@ -94,6 +117,22 @@ export class ReaderContentService {
 
       const isReaderMode = this.frameService.toggleFrame(!this.frameService.isVisible())
       
+      if (!isReaderMode) {
+        // 退出阅读模式时清理
+        this.cleanupRoot()
+      } else {
+        // 进入阅读模式时重新渲染
+        this.cleanupRoot() // 先清理可能存在的旧实例
+        this.root = document.createElement('div')
+        this.root.id = 'reader-root'
+        document.body.appendChild(this.root)
+        
+        const reactRoot = createRoot(this.root)
+        reactRoot.render(React.createElement(ArticleCard, { article }))
+        
+        logger.debug('Article card re-rendered from cache')
+      }
+
       logger.debug('Reader mode toggled:', {
         newState: isReaderMode ? 'visible' : 'hidden',
         articleTitle: article.title,
