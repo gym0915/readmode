@@ -6,6 +6,7 @@
 import { createLogger } from '~/shared/utils/logger'
 import { ReaderFrameService } from './reader-frame.service'
 import { ArticleParserService } from './article-parser.service'
+import { ArticleCacheService } from './article-cache.service'
 import type { IArticle } from '~/modules/reader/types/article.types'
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
@@ -16,11 +17,13 @@ const logger = createLogger('reader-content')
 export class ReaderContentService {
   private frameService: ReaderFrameService
   private parserService: ArticleParserService
+  private articleCache: ArticleCacheService
   private root: HTMLDivElement | null = null
 
   constructor() {
     this.frameService = new ReaderFrameService()
     this.parserService = new ArticleParserService()
+    this.articleCache = new ArticleCacheService()
   }
 
   /**
@@ -28,6 +31,7 @@ export class ReaderContentService {
    */
   async initialize(): Promise<void> {
     this.registerMessageListeners()
+    this.registerKeyboardListeners()
   }
 
   /**
@@ -44,6 +48,19 @@ export class ReaderContentService {
       }
       
       return true
+    })
+  }
+
+  /**
+   * 注册键盘事件监听器
+   */
+  private registerKeyboardListeners(): void {
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.frameService.isVisible()) {
+        logger.debug('ESC key pressed, exiting reader mode')
+        // 直接调用 handleToggleReaderMode，不需要获取当前文章信息
+        this.handleToggleReaderMode(null, () => {})
+      }
     })
   }
 
@@ -107,10 +124,10 @@ export class ReaderContentService {
   /**
    * 处理阅读模式切换请求
    */
-  private handleToggleReaderMode(article: IArticle, sendResponse: (response: any) => void): void {
+  private handleToggleReaderMode(article: IArticle | null, sendResponse: (response: any) => void): void {
     try {
       logger.info('Toggling reader mode:', {
-        title: article.title,
+        title: article?.title ?? 'Unknown',
         isCurrentlyVisible: this.frameService.isVisible(),
         timestamp: new Date().toISOString()
       })
@@ -120,8 +137,8 @@ export class ReaderContentService {
       if (!isReaderMode) {
         // 退出阅读模式时清理
         this.cleanupRoot()
-      } else {
-        // 进入阅读模式时重新渲染
+      } else if (article) {
+        // 仅在进入阅读模式且有文章数据时重新渲染
         this.cleanupRoot() // 先清理可能存在的旧实例
         this.root = document.createElement('div')
         this.root.id = 'reader-root'
@@ -135,18 +152,18 @@ export class ReaderContentService {
 
       logger.debug('Reader mode toggled:', {
         newState: isReaderMode ? 'visible' : 'hidden',
-        articleTitle: article.title,
+        articleTitle: article?.title ?? 'Unknown',
         timestamp: new Date().toISOString()
       })
 
       sendResponse({ 
-        data: { ...article, isReaderMode },
+        data: article ? { ...article, isReaderMode } : { isReaderMode },
         error: null 
       })
     } catch (error) {
       logger.error('Error toggling reader mode:', {
         error: String(error),
-        articleTitle: article.title,
+        articleTitle: article?.title ?? 'Unknown',
         timestamp: new Date().toISOString()
       })
       sendResponse({ 
