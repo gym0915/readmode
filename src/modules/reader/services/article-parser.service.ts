@@ -16,31 +16,41 @@ export class ArticleParserService {
    */
   async parseDocument(document: Document): Promise<IArticle> {
     try {
-      const documentClone = document.cloneNode(true) as Document
-      const reader = new Readability(documentClone)
-      const article = reader.parse()
+      const documentClone = document.cloneNode(true) as Document;
       
+      // 开启debug模式的配置选项
+      const readerOptions = {
+        debug: false,
+        // 可以添加其他配置
+        // charThreshold: 500,
+        // classesToPreserve: ['article-content', 'article-summary']
+      };
+
+      const reader = new Readability(documentClone, readerOptions);
+      
+      // 添加更详细的日志
+      //logger.info('Readability parsing started with debug mode');
+      
+      const article = reader.parse();
+      
+      // 打印详细的解析结果
+      logger.info('Readability output:', {
+        title: article?.title,
+        excerpt:article?.excerpt,
+        textcContent:article?.textContent,
+        excerptLength: article?.excerpt?.length,
+        contentLength: article?.content?.length,
+        textContentLength: article?.textContent?.length,
+        byline: article?.byline,
+        siteName: article?.siteName,
+        timestamp: article?.publishedTime,
+        dir: article?.dir
+        // 添加更多你想看的信息
+      });
+
       if (!article) {
-        throw new Error('Failed to parse article content')
+        throw new Error('Failed to parse article content');
       }
-
-      logger.info('Article parsed successfully:', {
-        title: article.title,
-        byline: article.byline || 'Unknown author',
-        siteName: article.siteName,
-        excerpt: article.excerpt,
-        contentLength: article.content?.length || 0,
-        textLength: article.textContent?.length || 0,
-        direction: article.dir || 'ltr',
-        timestamp: new Date().toISOString()
-      })
-
-      logger.debug('Article content details:', {
-        titleLength: article.title?.length || 0,
-        hasMetadata: !!article.byline || !!article.siteName,
-        excerptLength: article.excerpt?.length || 0,
-        contentPreview: article.textContent?.slice(0, 150) + '...'
-      })
 
       return {
         title: article.title,
@@ -50,14 +60,10 @@ export class ArticleParserService {
         byline: article.byline,
         dir: article.dir,
         siteName: article.siteName
-      }
+      };
     } catch (error) {
-      logger.error('Error parsing document:', {
-        error,
-        url: document.URL,
-        timestamp: new Date().toISOString()
-      })
-      throw error
+      logger.error('Error parsing article:', error);
+      throw error;
     }
   }
 } 

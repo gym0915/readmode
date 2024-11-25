@@ -34,9 +34,10 @@ export function ArticleCard({ article, onClose }: ArticleCardProps) {
 
         {/* 文章摘要 */}
         {article.excerpt && (
-          <div className={styles.excerpt}>
-            {article.excerpt}
-          </div>
+          <div 
+            className={styles.excerpt}
+            dangerouslySetInnerHTML={{ __html: article.excerpt }}
+          />
         )}
 
         {/* 文章内容 */}

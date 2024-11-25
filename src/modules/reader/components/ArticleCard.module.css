@@ -45,9 +45,34 @@
   font-size: 1.125rem;
   color: #4a4a4a;
   margin-bottom: 2rem;
-  padding: 1rem;
+  padding: 1.5rem;
   background: #f8f9fa;
   border-left: 4px solid #e9ecef;
+  
+  /* 添加对摘要中HTML元素的样式支持 */
+  :global(p) {
+    margin-bottom: 1rem;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  :global(a) {
+    color: #2563eb;
+    text-decoration: underline;
+    
+    &:hover {
+      color: #1d4ed8;
+    }
+  }
+
+  :global(strong), :global(b) {
+    font-weight: 600;
+  }
+
+  :global(em), :global(i) {
+    font-style: italic;
+  }
 }
 
 .content {
@@ -71,7 +96,24 @@
 .content :global(img) {
   max-width: 100%;
   height: auto;
+  margin: 2rem auto;
+  display: block;
+}
+
+.content :global(figure) {
   margin: 2rem 0;
+  text-align: center;
+}
+
+.content :global(figure img) {
+  margin: 0 auto;
+}
+
+.content :global(figcaption) {
+  margin-top: 0.5rem;
+  color: #666;
+  font-size: 0.875rem;
+  text-align: center;
 }
 
 .content :global(pre),
