@@ -1,5 +1,5 @@
 import { createLogger } from '~/shared/utils/logger'
-import type { Message } from './types'
+import type { Message } from '../../shared/types/message.types'
 
 const logger = createLogger('message-service')
 
