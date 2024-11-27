@@ -1,6 +1,19 @@
 /**
  * 阅读模式内容处理服务
- * 负责处理页面内容解析和阅读模式切换
+ * 负责管理页面内容的解析、阅读模式的切换以及与其他服务的协调
+ * 
+ * @class ReaderContentService
+ * @description
+ * 这个服务类是阅读模式功能的核心,它整合了多个子服务来实现完整的阅读模式功能。
+ * 主要功能包括:
+ * - 解析页面内容为可读格式
+ * - 管理阅读模式的切换状态
+ * - 协调 iframe 和文章卡片的显示
+ * - 处理消息通信
+ * 
+ * @example
+ * const readerContent = new ReaderContentService();
+ * await readerContent.initialize();
  */
 
 import { createLogger } from '~/shared/utils/logger'
@@ -28,6 +41,14 @@ export class ReaderContentService {
 
   /**
    * 初始化服务
+   * 
+   * @returns {Promise<void>}
+   * @description
+   * 这个方法会注册必要的消息监听器和键盘事件监听器。
+   * 它是服务启动时的必要步骤。
+   * 
+   * @example
+   * await readerContent.initialize();
    */
   async initialize(): Promise<void> {
     this.registerMessageListeners()
@@ -36,6 +57,11 @@ export class ReaderContentService {
 
   /**
    * 注册消息监听器
+   * 
+   * @private
+   * @description
+   * 这个方法注册了处理内容解析和阅读模式切换的消息监听器。
+   * 添加此方法的理由是为了集中管理所有与消息相关的逻辑,提高代码的可维护性。
    */
   private registerMessageListeners(): void {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -53,12 +79,16 @@ export class ReaderContentService {
 
   /**
    * 注册键盘事件监听器
+   * 
+   * @private
+   * @description
+   * 这个方法注册了用于退出阅读模式的键盘事件监听器。
+   * 添加此方法的理由是为了提供用户快速退出阅读模式的方式,提高用户体验。
    */
   private registerKeyboardListeners(): void {
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && this.frameService.isVisible()) {
         logger.debug('ESC key pressed, exiting reader mode')
-        // 直接调用 handleToggleReaderMode，不需要获取当前文章信息
         this.handleToggleReaderMode(null, () => {})
       }
     })

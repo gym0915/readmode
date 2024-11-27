@@ -56,29 +56,28 @@
             - Chrome Storage API：用户配置同步
             - IndexedDB：大量结构化数据存储
 
-src/
-├── modules/               # 功能模块目录
-│   ├── reader/            # 阅读模式核心功能
-│   │   ├── components/    # 阅读器相关组件
-│   │   ├── services/      # 阅读处理服务
-│   │   ├── hooks/         # 自定义 hooks
-│   │   └── types.ts       # 类型定义
-│   ├── theme/             # 主题管理模块
-│   │   ├── services/      # 主题服务
-│   │   ├── constants/     # 主题常量
-│   │   └── types.ts       # 类型定义
-│   └── settings/          # 设置管理模块
-│       ├── components/    # 设置界面组件
-│       ├── services/      # 设置服务
-│       └── types.ts       # 类型定义
-├── core/                  # 核心功能
-│   ├── messaging/         # 消息通信
-│   ├── storage/          # 存储管理
-│   └── error-handling/   # 错误处理
-└── shared/               # 共享资源
-    ├── constants/        # 全局常量
-    ├── types/           # 共享类型
-    └── utils/           # 工具函数
+src/                      # 源代码根目录
+├── core/                 # 核心功能模块，提供基础服务和功能
+│   └── services/         # 核心服务，包括消息通信、存储管理等底层服务
+├── modules/              # 业务功能模块，每个子目录代表一个独立的功能模块
+│   ├── reader/           # 阅读模式核心功能模块
+│   │   ├── api/         # 阅读模式相关的 API 调用接口
+│   │   ├── components/  # 阅读模式专用的 UI 组件
+│   │   ├── hooks/       # 阅读模式相关的自定义 hooks
+│   │   ├── services/    # 阅读模式业务服务，如内容解析、渲染等
+│   │   └── types.ts     # 阅读模式相关的类型定义
+│   ├── theme/           # 主题管理模块，处理外观和样式配置
+│   └── settings/        # 设置管理模块，处理用户偏好设置
+├── shared/              # 共享资源目录，存放可复用的代码和资源
+│   ├── components/      # 共享 UI 组件，可被多个模块使用
+│   ├── constants/       # 全局常量定义，如配置项、枚举值等
+│   ├── hooks/           # 共享的自定义 hooks，提供通用的状态和行为逻辑
+│   ├── types/           # 全局通用的类型定义
+│   └── utils/           # 工具函数和辅助方法
+│       └── error-handling.ts  # 错误处理工具
+├── store/               # 全局状态管理，使用 Zustand 实现
+├── background/          # Chrome 扩展的背景脚本，处理后台任务
+└── content/             # Chrome 扩展的内容脚本，处理页面交互
 
 
 ### 关键目录说明
