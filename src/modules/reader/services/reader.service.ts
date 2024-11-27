@@ -24,13 +24,13 @@ import { ArticleCacheService } from './article-cache.service'
 const logger = createLogger('reader')
 
 export class ReaderService {
-  private contentService: ReaderContentService
+  private readerContent: ReaderContentService
   private iconManager: IconManagerService
   private contentScriptManager: ContentScriptManagerService
   private articleCache: ArticleCacheService
 
   constructor() {
-    this.contentService = new ReaderContentService()
+    this.readerContent = new ReaderContentService()
     this.iconManager = new IconManagerService()
     this.contentScriptManager = new ContentScriptManagerService()
     this.articleCache = new ArticleCacheService()
@@ -38,18 +38,16 @@ export class ReaderService {
 
   /**
    * 初始化阅读模式服务
-   * 
    * @returns {Promise<void>}
-   * @description
-   * 初始化所有子服务并设置必要的事件监听器
-   * 
-   * @example
-   * await reader.initialize();
    */
   async initialize(): Promise<void> {
-    await this.contentService.initialize()
-    this.setupEventListeners()
-    logger.info('Reader service initialized')
+    try {
+      await this.readerContent.initialize()
+      logger.info('Reader service initialized successfully')
+    } catch (error) {
+      logger.error('Failed to initialize reader service:', error)
+      throw error
+    }
   }
 
   /**
