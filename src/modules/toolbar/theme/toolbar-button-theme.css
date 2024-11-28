@@ -7,25 +7,25 @@
   --toolbar-btn-border-style: solid;
   --toolbar-btn-border-color: transparent;
   
-  /* 颜色变量 */
+  /* 按钮背景颜色 */
   --toolbar-btn-bg: transparent;
   --toolbar-btn-hover-bg: rgba(0, 0, 0, 0.04);
   --toolbar-btn-active-bg: rgba(0, 0, 0, 0.08);
   
-  /* 图标颜色 */
-  --toolbar-icon-color: rgba(0, 0, 0, 0.6);
-  --toolbar-icon-hover-color: rgba(0, 0, 0, 0.8);
-  --toolbar-icon-active-color: rgba(0, 0, 0, 1);
+  /* 按钮图标颜色 */
+  --toolbar-icon-color: #9CA3AF;
+  --toolbar-icon-hover-color: #6B7280;
+  --toolbar-icon-active-color: #4B5563;
 }
 
 /* 暗色主题变量 */
 [data-theme="dark"] {
-  /* 背景色 - 暗色主题 */
+  /* 按钮背景色 - 暗色主题 */
   --toolbar-btn-hover-bg: rgba(255, 255, 255, 0.1);
   --toolbar-btn-active-bg: rgba(255, 255, 255, 0.15);
   
   /* 图标颜色 - 暗色主题 */
-  --toolbar-icon-color: rgba(255, 255, 255, 0.6);
-  --toolbar-icon-hover-color: rgba(255, 255, 255, 0.8);
-  --toolbar-icon-active-color: rgba(255, 255, 255, 1);
+  --toolbar-icon-color: rgba(255, 255, 255, 0.5);
+  --toolbar-icon-hover-color: rgba(255, 255, 255, 0.7);
+  --toolbar-icon-active-color: rgba(255, 255, 255, 0.9);
 } 
