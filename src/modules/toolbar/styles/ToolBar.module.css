@@ -35,10 +35,10 @@
 }
 
 .toolbarContent {
-  background: transparent;
-  border-radius: 8px;
-  padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 8px;
+  background: transparent;
+  border: none;
 } 
