@@ -8,6 +8,43 @@ const iconManager = new IconManagerService()
 const contentScriptManager = new ContentScriptManagerService()
 const articleCache = new ArticleCacheService()
 
+// 初始化所有功能
+const initializeFeatures = async () => {
+  try {
+    // 初始化右键菜单
+    if (chrome.contextMenus) {
+      chrome.contextMenus.create({
+        id: 'options',
+        title: '选项',
+        contexts: ['action']
+      }, () => {
+        const error = chrome.runtime.lastError
+        if (error) {
+          logger.error('创建右键菜单失败:', error)
+        } else {
+          logger.info('成功创建右键菜单')
+        }
+      })
+
+      // 监听右键菜单点击事件
+      chrome.contextMenus.onClicked.addListener((info) => {
+        if (info.menuItemId === 'options') {
+          chrome.runtime.openOptionsPage()
+        }
+      })
+    } else {
+      logger.warn('contextMenus API 不可用')
+    }
+  } catch (error) {
+    logger.error('初始化功能时发生错误:', error)
+  }
+}
+
+// 监听扩展安装或更新事件
+chrome.runtime.onInstalled.addListener(() => {
+  initializeFeatures()
+})
+
 // 监听标签页更新事件
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "loading") {
