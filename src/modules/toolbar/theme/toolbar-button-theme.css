@@ -1,21 +1,23 @@
 :root {
-  /* 工具栏按钮基础样式变量 */
-  --toolbar-btn-size: 32px;
-  --toolbar-btn-radius: 6px;
-  --toolbar-btn-padding: 6px;
-  --toolbar-btn-border-width: 1px;
-  --toolbar-btn-border-style: solid;
-  --toolbar-btn-border-color: transparent;
-  
-  /* 按钮背景颜色 */
-  --toolbar-btn-bg: transparent;
-  --toolbar-btn-hover-bg: rgba(0, 0, 0, 0.04);
-  --toolbar-btn-active-bg: rgba(0, 0, 0, 0.08);
-  
   /* 按钮图标颜色 */
   --toolbar-icon-color: #9CA3AF;
   --toolbar-icon-hover-color: #6B7280;
   --toolbar-icon-active-color: #4B5563;
+
+  /* 按钮尺寸和内边距 */
+  --toolbar-btn-size: 32px;
+  --toolbar-btn-padding: 6px;
+  --toolbar-btn-radius: 6px;
+
+  /* 按钮边框 - 设置为透明 */
+  --toolbar-btn-border-width: 1px;
+  --toolbar-btn-border-style: solid;
+  --toolbar-btn-border-color: transparent;
+
+  /* 按钮背景 - 全部设置为透明 */
+  --toolbar-btn-bg: transparent;
+  --toolbar-btn-hover-bg: transparent;
+  --toolbar-btn-active-bg: transparent;
 }
 
 /* 暗色主题变量 */
