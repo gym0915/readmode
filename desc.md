@@ -66,6 +66,17 @@ src/                      # 源代码根目录
 │   │   ├── hooks/       # 阅读模式相关的自定义 hooks
 │   │   ├── services/    # 阅读模式业务服务，如内容解析、渲染等
 │   │   └── types.ts     # 阅读模式相关的类型定义
+│   ├── toolbar/
+│   │   ├── components/
+│   │   │   ├── Toolbar.tsx          # 工具栏容器组件
+│   │   │   ├── ToolbarButton.tsx    # 通用按钮组件
+│   │   │   └── SettingsButton.tsx   # 设置按钮组件
+│   │   ├── hooks/
+│   │   │   ├── use-toolbar-position.ts  # 处理工具栏定位逻辑
+│   │   │   └── use-toolbar-theme.ts     # 处理主题相关逻辑
+│   │   ├── styles/
+│   │   │   └── toolbar.css          # 工具栏样式（CSS Module）
+│   │   └── types.ts                 # 类型定义
 │   ├── theme/           # 主题管理模块，处理外观和样式配置
 │   └── settings/        # 设置管理模块，处理用户偏好设置
 ├── shared/              # 共享资源目录，存放可复用的代码和资源
