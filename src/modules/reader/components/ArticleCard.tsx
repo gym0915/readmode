@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import styles from './ArticleCard.module.css'
 import type { IArticle } from '../types/article.types'
-import { ToolBar } from './ToolBar'
+import { ToolBar } from '../../toolbar/components/ToolBar'
 
 interface ArticleCardProps {
   article: IArticle

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import styles from './ToolBar.module.css'
+import styles from '../styles/ToolBar.module.css'
 
 interface ToolBarProps {
   articleCardRef: React.RefObject<HTMLDivElement>
