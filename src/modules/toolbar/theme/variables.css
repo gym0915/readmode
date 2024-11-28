@@ -1,0 +1,31 @@
+:root {
+  /* 工具栏按钮基础样式变量 */
+  --toolbar-btn-size: 32px;
+  --toolbar-btn-radius: 6px;
+  --toolbar-btn-padding: 6px;
+  --toolbar-btn-border-width: 1px;
+  --toolbar-btn-border-style: solid;
+  --toolbar-btn-border-color: transparent;
+  
+  /* 颜色变量 */
+  --toolbar-btn-bg: transparent;
+  --toolbar-btn-hover-bg: rgba(0, 0, 0, 0.04);
+  --toolbar-btn-active-bg: rgba(0, 0, 0, 0.08);
+  
+  /* 图标颜色 */
+  --toolbar-icon-color: rgba(0, 0, 0, 0.6);
+  --toolbar-icon-hover-color: rgba(0, 0, 0, 0.8);
+  --toolbar-icon-active-color: rgba(0, 0, 0, 1);
+}
+
+/* 暗色主题变量 */
+[data-theme="dark"] {
+  /* 背景色 - 暗色主题 */
+  --toolbar-btn-hover-bg: rgba(255, 255, 255, 0.1);
+  --toolbar-btn-active-bg: rgba(255, 255, 255, 0.15);
+  
+  /* 图标颜色 - 暗色主题 */
+  --toolbar-icon-color: rgba(255, 255, 255, 0.6);
+  --toolbar-icon-hover-color: rgba(255, 255, 255, 0.8);
+  --toolbar-icon-active-color: rgba(255, 255, 255, 1);
+} 

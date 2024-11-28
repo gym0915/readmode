@@ -24,30 +24,42 @@
 }
 
 .toolbarButton {
+  width: var(--toolbar-btn-size);
+  height: var(--toolbar-btn-size);
+  padding: var(--toolbar-btn-padding);
+  border-radius: var(--toolbar-btn-radius);
+  border-width: var(--toolbar-btn-border-width);
+  border-style: var(--toolbar-btn-border-style);
+  border-color: var(--toolbar-btn-border-color);
+  background-color: var(--toolbar-btn-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  margin: 0;
-  border: none;
-  outline: none;
-  background: transparent;
   cursor: pointer;
-  color: #9CA3AF;
-  transition: color 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease-in-out;
 }
 
 .toolbarButton:hover {
-  color: #6B7280;
-}
-
-.toolbarButton:focus {
-  outline: none;
+  background-color: var(--toolbar-btn-hover-bg);
 }
 
 .toolbarButton:active {
-  background: transparent;
+  background-color: var(--toolbar-btn-active-bg);
+}
+
+.toolbarIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--toolbar-icon-color);
+  transition: color 0.2s ease-in-out;
+}
+
+.toolbarButton:hover .toolbarIcon {
+  color: var(--toolbar-icon-hover-color);
+}
+
+.toolbarButton:active .toolbarIcon {
+  color: var(--toolbar-icon-active-color);
 }
 
 @media (max-width: 768px) {
