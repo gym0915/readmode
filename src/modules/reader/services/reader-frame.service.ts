@@ -54,6 +54,11 @@ export class ReaderFrameService {
       opacity: 0.5;
       transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       will-change: opacity;
+      margin: 0;
+      padding: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
     `
     return frame
   }
@@ -100,12 +105,16 @@ export class ReaderFrameService {
     
     if (existingFrame && !show) {
       existingFrame.style.opacity = '0'
+      document.documentElement.style.removeProperty('overflow')
+      document.body.style.removeProperty('overflow')
       setTimeout(() => existingFrame.remove(), 400)
       logger.debug('Reader frame removed')
       return false
     } else if (!existingFrame && show) {
       const frame = this.createFrame()
       document.body.appendChild(frame)
+      document.documentElement.style.overflow = 'hidden'
+      document.body.style.overflow = 'hidden'
       setTimeout(() => {
         requestAnimationFrame(() => {
           frame.style.opacity = '1'
