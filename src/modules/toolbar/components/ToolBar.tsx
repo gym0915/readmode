@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import styles from '../styles/ToolBar.module.css'
-import { SettingsButton } from './SettingsButton'
+import { WriteButton } from './WriteButton'
 
 interface ToolBarProps {
   articleCardRef: React.RefObject<HTMLDivElement>
@@ -63,7 +63,7 @@ export function ToolBar({ articleCardRef }: ToolBarProps) {
     <div ref={containerRef} className={styles.toolbarContainer}>
       <div ref={toolbarRef} className={styles.toolbar}>
         <div className={styles.toolbarContent}>
-          <SettingsButton />
+          <WriteButton />
         </div>
       </div>
     </div>
