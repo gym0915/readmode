@@ -1,0 +1,30 @@
+.toolbarContainer {
+  position: relative;
+  height: 0;
+  z-index: 2147483648;
+}
+
+.toolbar {
+  position: absolute;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.toolbarContent {
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  padding: 1rem;
+  width: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    display: none;
+  }
+} 

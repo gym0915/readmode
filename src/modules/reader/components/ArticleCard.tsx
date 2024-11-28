@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import styles from './ArticleCard.module.css'
 import type { IArticle } from '../types/article.types'
+import { ToolBar } from './ToolBar'
 
 interface ArticleCardProps {
   article: IArticle
@@ -46,6 +47,7 @@ export function ArticleCard({ article, onClose }: ArticleCardProps) {
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
       </div>
+      <ToolBar articleCardRef={cardRef} />
     </div>
   )
 } 
