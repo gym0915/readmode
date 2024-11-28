@@ -1,5 +1,6 @@
 import React from 'react';
-import { ToolbarButton } from './ToolbarButton';
+import '../theme/toolbar-button-theme.css';
+import styles from '../styles/ToolBar.module.css';
 
 /**
  * 设置图标组件
@@ -8,6 +9,7 @@ import { ToolbarButton } from './ToolbarButton';
  */
 const SettingsIcon: React.FC = () => (
   <svg
+    className={styles.toolbarIcon}
     xmlns="http://www.w3.org/2000/svg"
     width="20"
     height="20"
@@ -47,10 +49,12 @@ interface ISettingsButtonProps {
  */
 export const SettingsButton: React.FC<ISettingsButtonProps> = ({ onClick }) => {
   return (
-    <ToolbarButton
-      icon={<SettingsIcon />}
-      title="设置"
+    <button 
+      className={styles.toolbarButton}
       onClick={onClick}
-    />
+      title="设置"
+    >
+      <SettingsIcon />
+    </button>
   );
 }; 

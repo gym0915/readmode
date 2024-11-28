@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { Settings } from 'lucide-react'
 import styles from '../styles/ToolBar.module.css'
+import { SettingsButton } from './SettingsButton'
 
 interface ToolBarProps {
   articleCardRef: React.RefObject<HTMLDivElement>
@@ -63,9 +63,7 @@ export function ToolBar({ articleCardRef }: ToolBarProps) {
     <div ref={containerRef} className={styles.toolbarContainer}>
       <div ref={toolbarRef} className={styles.toolbar}>
         <div className={styles.toolbarContent}>
-          <button className={styles.toolbarButton} aria-label="设置">
-            <Settings size={20} />
-          </button>
+          <SettingsButton />
         </div>
       </div>
     </div>
