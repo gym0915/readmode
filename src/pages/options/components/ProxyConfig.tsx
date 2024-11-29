@@ -38,10 +38,10 @@ export const ProxyConfig: React.FC = () => {
             </label>
             <input
               type="text"
-              value={host}
+              value={host || "127.0.0.1"}
               onChange={(e) => setHost(e.target.value)}
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200"
-              placeholder="127.0.0.1"
+              placeholder="请输入 Host"
             />
           </div>
 
