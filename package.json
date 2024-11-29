@@ -58,7 +58,6 @@
     "permissions": [
       "activeTab",
       "scripting",
-      "contextMenus",
       "storage"
     ],
     "content_scripts": [

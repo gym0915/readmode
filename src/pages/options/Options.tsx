@@ -1,6 +1,6 @@
 import React from "react"
-import { LLMConfig } from "./components/LLMConfig"
-import { ProxyConfig } from "./components/ProxyConfig"
+import { LLMConfig } from "~/pages/options/components/LLMConfig"
+import { ProxyConfig } from "~/pages/options/components/ProxyConfig"
 
 const Options: React.FC = () => {
   return (
