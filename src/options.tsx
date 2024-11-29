@@ -1,6 +1,7 @@
 import React from "react"
 import { createRoot } from "react-dom/client"
 import Options from "./pages/options/Options"
+import "./style.css"
 
 // 渲染选项页面
 const root = document.getElementById("root")
