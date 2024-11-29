@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@mozilla/readability": "^0.5.0",
+    "@tabler/icons-react": "^3.23.0",
     "@tailwindcss/typography": "^0.5.10",
     "plasmo": "0.89.4",
     "react": "18.2.0",
