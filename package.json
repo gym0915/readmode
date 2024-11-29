@@ -1,8 +1,8 @@
 {
   "name": "readmode-plasmo",
-  "displayName": "Readmode plasmo",
+  "displayName": "Readfun",
   "version": "0.0.1",
-  "description": "chrome extention readmode",
+  "description": "Make reading fun",
   "author": "gym0915@hotmail.com",
   "scripts": {
     "dev": "plasmo dev",
