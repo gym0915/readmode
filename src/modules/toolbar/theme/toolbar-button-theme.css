@@ -1,33 +1,28 @@
 :root {
-  /* 按钮图标颜色 */
-  --toolbar-icon-color: #A9A9A9;
-  --toolbar-icon-hover-color: #6B7280;
-  --toolbar-icon-active-color: #4B5563;
+  /* 按钮图标颜色 - 采用Safari风格的柔和色调 */
+  --toolbar-icon-color: rgba(0, 0, 0, 0.45);
+  --toolbar-icon-hover-color: rgba(0, 0, 0, 0.75);
+  --toolbar-icon-active-color: rgba(0, 0, 0, 0.9);
 
-  /* 按钮尺寸和内边距 */
-  --toolbar-btn-size: 32px;
-  --toolbar-btn-padding: 6px;
+  /* 按钮尺寸和内边距 - 适当调整以匹配Safari风格 */
+  --toolbar-btn-size: 28px;
+  --toolbar-btn-padding: 4px;
   --toolbar-btn-radius: 6px;
 
-  /* 按钮边框 - 设置为透明 */
-  --toolbar-btn-border-width: 1px;
-  --toolbar-btn-border-style: solid;
-  --toolbar-btn-border-color: transparent;
-
-  /* 按钮背景 - 全部设置为透明 */
+  /* 按钮背景 - Safari风格的柔和半透明效果 */
   --toolbar-btn-bg: transparent;
-  --toolbar-btn-hover-bg: transparent;
-  --toolbar-btn-active-bg: transparent;
+  --toolbar-btn-hover-bg: rgba(0, 0, 0, 0.05);
+  --toolbar-btn-active-bg: rgba(0, 0, 0, 0.1);
 }
 
 /* 暗色主题变量 */
 [data-theme="dark"] {
-  /* 按钮背景色 - 暗色主题 */
-  --toolbar-btn-hover-bg: rgba(255, 255, 255, 0.1);
-  --toolbar-btn-active-bg: rgba(255, 255, 255, 0.15);
+  /* 按钮背景色 - 暗色主题下的Safari风格 */
+  --toolbar-btn-hover-bg: rgba(255, 255, 255, 0.08);
+  --toolbar-btn-active-bg: rgba(255, 255, 255, 0.12);
   
-  /* 图标颜色 - 暗色主题 */
-  --toolbar-icon-color: rgba(255, 255, 255, 0.5);
-  --toolbar-icon-hover-color: rgba(255, 255, 255, 0.7);
+  /* 图标颜色 - 暗色主题下更柔和的色调 */
+  --toolbar-icon-color: rgba(255, 255, 255, 0.45);
+  --toolbar-icon-hover-color: rgba(255, 255, 255, 0.75);
   --toolbar-icon-active-color: rgba(255, 255, 255, 0.9);
 } 

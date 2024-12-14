@@ -1,8 +1,8 @@
 import React, { useState } from "react"
 import { LLMConfig } from "~/pages/options/components/LLMConfig"
-import { ProxyConfig } from "~/pages/options/components/ProxyConfig"
+import { GeneralConfig } from "~/pages/options/components/GeneralConfig"
 import logo from "data-base64:~/assets/icons/logo.svg"
-import { IconAdjustments, IconRobot } from "@tabler/icons-react"
+import { IconRobot, IconSettings } from "@tabler/icons-react"
 
 // 定义导航项接口
 interface NavItem {
@@ -16,16 +16,16 @@ const Options: React.FC = () => {
   // 定义导航项
   const navItems: NavItem[] = [
     {
+      id: "general",
+      name: "通用",
+      icon: <IconSettings className="w-6 h-6" />,
+      component: <GeneralConfig />
+    },
+    {
       id: "model",
       name: "模型",
       icon: <IconRobot className="w-6 h-6" />,
       component: <LLMConfig />
-    },
-    {
-      id: "proxy",
-      name: "代理",
-      icon: <IconAdjustments className="w-6 h-6" />,
-      component: <ProxyConfig />
     }
   ]
 

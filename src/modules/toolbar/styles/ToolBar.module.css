@@ -1,6 +1,7 @@
 .toolbarIcon {
   color: var(--toolbar-icon-color);
   transition: color 0.2s ease-in-out;
+  opacity: 0.9;
 }
 
 .toolbarButton {
@@ -9,15 +10,28 @@
   padding: var(--toolbar-btn-padding);
   border-radius: var(--toolbar-btn-radius);
   border: none;
-  background: transparent;
+  background: var(--toolbar-btn-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.toolbarButton:hover {
+  background: var(--toolbar-btn-hover-bg);
+  transform: scale(1.05);
 }
 
 .toolbarButton:hover .toolbarIcon {
   color: var(--toolbar-icon-hover-color);
+}
+
+.toolbarButton:active {
+  background: var(--toolbar-btn-active-bg);
+  transform: scale(0.95);
 }
 
 .toolbarButton:active .toolbarIcon {

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import styles from '../styles/ToolBar.module.css'
-import { WriteButton } from './WriteButton'
+import { SummaryButton } from './SummaryButton'
 
 /**
  * ToolBar组件的属性接口定义
@@ -27,7 +27,7 @@ interface ToolBarProps {
  * <ToolBar articleCardRef={articleRef} visible={true} />
  * ```
  */
-export function ToolBar({ articleCardRef, visible = false }: ToolBarProps) {
+export function ToolBar({ articleCardRef, visible = true }: ToolBarProps) {
   // 工具栏DOM引用
   const toolbarRef = useRef<HTMLDivElement>(null)
   // 容器DOM引用
@@ -100,7 +100,7 @@ export function ToolBar({ articleCardRef, visible = false }: ToolBarProps) {
         }}
       >
         <div className={styles.toolbarContent}>
-          <WriteButton />
+          <SummaryButton />
         </div>
       </div>
     </div>
