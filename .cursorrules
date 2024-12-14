@@ -43,7 +43,7 @@ Manifest和权限:
 
 LOG 日志规范
 - 日志工具
-    - 统一使用 src/utils/logger.ts 中的 Logger 类记录日志
+    - 统一使用 src/shared/utils/logger.ts来添加日志
 - 日志级别使用规范
     - DEBUG: 开发调试信息
     ```typescript

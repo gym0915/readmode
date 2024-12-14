@@ -1,0 +1,120 @@
+/* Toast 容器样式 */
+.Toastify__toast-container {
+  min-width: 320px;
+  max-width: 420px;
+  padding: 0;
+}
+
+/* Toast 基础样式 */
+.Toastify__toast {
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Toast 内容样式 */
+.Toastify__toast-body {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+}
+
+/* 成功类型 Toast */
+.Toastify__toast--success {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+/* 错误类型 Toast */
+.Toastify__toast--error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* 警告类型 Toast */
+.Toastify__toast--warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fef3c7;
+}
+
+/* 信息类型 Toast */
+.Toastify__toast--info {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+/* 关闭按钮样式 */
+.Toastify__close-button {
+  color: currentColor;
+  opacity: 0.6;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}
+
+/* 进度条样式 */
+.Toastify__progress-bar {
+  height: 2px;
+  opacity: 0.7;
+}
+
+/* 成功类型进度条 */
+.Toastify__progress-bar--success {
+  background-color: #059669;
+}
+
+/* 错误类型进度条 */
+.Toastify__progress-bar--error {
+  background-color: #dc2626;
+}
+
+/* 警告类型进度条 */
+.Toastify__progress-bar--warning {
+  background-color: #d97706;
+}
+
+/* 信息类型进度条 */
+.Toastify__progress-bar--info {
+  background-color: #2563eb;
+}
+
+/* Toast 动画效果 */
+.Toastify__slide-enter--top-right {
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.Toastify__slide-exit--top-right {
+  animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+} 
