@@ -49,13 +49,13 @@ export class LLMService {
 
     if (!this.config.apiKey) {
       const error = new Error('API Key is required')
-      this.logger.error('配置验证失败: API Key 缺失')
+      this.logger.error('验证失败: API Key 缺失')
       throw error
     }
 
     if (!this.config.baseUrl) {
       const error = new Error('Base URL is required')
-      this.logger.error('配置验证失败: Base URL 缺失')
+      this.logger.error('验证失败: Base URL 缺失')
       throw error
     }
 
@@ -63,11 +63,11 @@ export class LLMService {
     try {
       new URL(this.config.baseUrl)
     } catch (error) {
-      this.logger.error('配置验证失败: Base URL 格式无效', { baseUrl: this.config.baseUrl })
+      this.logger.error('验证失败: Base URL 格式无效', { baseUrl: this.config.baseUrl })
       throw new Error('Invalid Base URL format')
     }
 
-    this.logger.info('配置验证通过', { baseUrl: this.config.baseUrl })
+    this.logger.info('验证通过', { baseUrl: this.config.baseUrl })
   }
 
   /**
@@ -101,7 +101,7 @@ export class LLMService {
   public async validateAndGetModels(): Promise<IModelsResponse> {
     try {
       const url = `${this.config.baseUrl}${API_ENDPOINTS.MODELS}`
-      this.logger.debug('开始获取模型列表', { url })
+      this.logger.debug('开始验证', { url })
 
       const response = await fetch(url, {
         method: 'GET',
@@ -110,17 +110,17 @@ export class LLMService {
 
       if (!response.ok) {
         const error = (await response.json()) as ILLMError
-        this.logger.error('获取模型列表失败', { 
+        this.logger.error('验证失败', { 
           status: response.status,
           statusText: response.statusText,
           error,
           url
         })
-        throw new Error(error.message || '获取模型列表失败')
+        throw new Error(error.message || '验证失败')
       }
 
       const data = (await response.json()) as IModelsResponse
-      this.logger.info('成功获取模型列表', { 
+      this.logger.info('验证成功', { 
         modelCount: data.data.length,
         models: data.data.map(model => ({
           id: model.id,
@@ -132,7 +132,7 @@ export class LLMService {
       return data
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error('请求模型列表时发生错误', { 
+        this.logger.error('验证时发生错误', { 
           error: {
             name: error.name,
             message: error.message,
@@ -140,7 +140,7 @@ export class LLMService {
           }
         })
       } else {
-        this.logger.error('请求模型列表时发生未知错误', { error })
+        this.logger.error('验证时发生未知错误', { error })
       }
       throw error
     }
