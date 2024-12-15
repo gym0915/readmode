@@ -37,7 +37,11 @@ const SummaryIcon: React.FC = () => (
   </svg>
 )
 
-export const SummaryButton: React.FC = () => {
+interface SummaryButtonProps {
+  onVisibilityChange?: (visible: boolean) => void
+}
+
+export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange }) => {
   const [isLoading, setIsLoading] = useState(false)
   const messageHandler = MessageHandler.getInstance()
 
@@ -72,6 +76,9 @@ export const SummaryButton: React.FC = () => {
         })
         return
       }
+
+      // 如果模型配置验证通过，隐藏工具栏
+      onVisibilityChange?.(false)
 
       // TODO: 继续文章总结逻辑
       

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import styles from './ArticleCard.module.css'
 import type { IArticle } from '../types/article.types'
 import { ToolBar } from '../../toolbar/components/ToolBar'
@@ -13,6 +13,7 @@ interface ArticleCardProps {
 
 export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClose }) => {
   const cardRef = useRef<HTMLDivElement>(null)
+  const [toolbarVisible, setToolbarVisible] = useState(true)
 
   useEffect(() => {
     // 添加动画效果
@@ -62,7 +63,11 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClose }) =>
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
         </div>
-        <ToolBar articleCardRef={cardRef} />
+        <ToolBar 
+          articleCardRef={cardRef} 
+          visible={toolbarVisible} 
+          onVisibilityChange={setToolbarVisible}
+        />
       </div>
     </>
   )

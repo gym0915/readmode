@@ -7,10 +7,12 @@ import { SummaryButton } from './SummaryButton'
  * @interface ToolBarProps
  * @property {React.RefObject<HTMLDivElement>} articleCardRef - 文章卡片的DOM引用
  * @property {boolean} [visible=false] - 控制工具栏的显示状态，默认为隐藏
+ * @property {function} [onVisibilityChange] - 控制工具栏显示状态的回调函数
  */
 interface ToolBarProps {
   articleCardRef: React.RefObject<HTMLDivElement>
   visible?: boolean
+  onVisibilityChange?: (visible: boolean) => void
 }
 
 /**
@@ -21,7 +23,11 @@ interface ToolBarProps {
  * @param {ToolBarProps} props - 组件属性
  * @returns {JSX.Element} 工具栏组件
  */
-export const ToolBar: React.FC<ToolBarProps> = ({ articleCardRef, visible = true }) => {
+export const ToolBar: React.FC<ToolBarProps> = ({ 
+  articleCardRef, 
+  visible = true,
+  onVisibilityChange 
+}) => {
   // 工具栏DOM引用
   const toolbarRef = useRef<HTMLDivElement>(null)
   // 容器DOM引用
@@ -94,7 +100,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({ articleCardRef, visible = true
         }}
       >
         <div className={styles.toolbarContent}>
-          <SummaryButton />
+          <SummaryButton onVisibilityChange={onVisibilityChange} />
         </div>
       </div>
     </div>
