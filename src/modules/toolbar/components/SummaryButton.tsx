@@ -1,6 +1,7 @@
 import React from 'react';
 import '../theme/toolbar-button-theme.css';
 import styles from '../styles/ToolBar.module.css';
+import { MessageHandler } from '../../../shared/utils/message';
 
 /**
  * 文章总结图标组件
@@ -35,30 +36,37 @@ const SummaryIcon: React.FC = () => (
 /**
  * 文章总结按钮组件的属性接口
  * @interface ISummaryButtonProps
+ * @property {boolean} isConfigured - 是否已完成配置
  * @property {() => void} [onClick] - 点击事件处理函数
  */
 interface ISummaryButtonProps {
+  isConfigured: boolean;
   onClick?: () => void;
 }
 
 /**
- * 文章总结按钮组���
+ * 文章总结按钮组件
  * 用于触发文章总结功能的工具栏按钮
  * 
  * @component
  * @param {ISummaryButtonProps} props - 组件属性
  * @returns {JSX.Element} 渲染的文章总结按钮组件
- * 
- * @example
- * ```tsx
- * <SummaryButton onClick={() => console.log('文章总结按钮点击')} />
- * ```
  */
-export const SummaryButton: React.FC<ISummaryButtonProps> = ({ onClick }) => {
+export const SummaryButton: React.FC<ISummaryButtonProps> = ({ isConfigured, onClick }) => {
+  const messageHandler = MessageHandler.getInstance();
+
+  const handleClick = () => {
+    if (!isConfigured) {
+      messageHandler.warning('请先在选项页面完成模型配置');
+      return;
+    }
+    onClick?.();
+  };
+
   return (
     <button 
       className={styles.toolbarButton}
-      onClick={onClick}
+      onClick={handleClick}
       title="文章总结"
     >
       <SummaryIcon />

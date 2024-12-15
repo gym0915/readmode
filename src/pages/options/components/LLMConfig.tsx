@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import type { IModelInfo } from "~/modules/llm/types"
 import { createLogger, ELogLevel } from "~/shared/utils/logger"
-import { MessageHandler } from "~/modules/llm/utils/message"
+import { MessageHandler } from "~/shared/utils/message"
 import { LLMService } from "~/modules/llm"
 import { CryptoManager } from "~/shared/utils/crypto-manager"
 import { IndexedDBManager } from "~/shared/utils/indexed-db"

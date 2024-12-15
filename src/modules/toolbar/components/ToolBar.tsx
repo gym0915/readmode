@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import styles from '../styles/ToolBar.module.css'
 import { SummaryButton } from './SummaryButton'
+import { IndexedDBManager } from '../../../shared/utils/indexed-db'
 
 /**
  * ToolBar组件的属性接口定义
@@ -20,18 +21,35 @@ interface ToolBarProps {
  * @component
  * @param {ToolBarProps} props - 组件属性
  * @returns {JSX.Element} 工具栏组件
- * 
- * @example
- * ```tsx
- * const articleRef = useRef<HTMLDivElement>(null);
- * <ToolBar articleCardRef={articleRef} visible={true} />
- * ```
  */
-export function ToolBar({ articleCardRef, visible = true }: ToolBarProps) {
+export const ToolBar: React.FC<ToolBarProps> = ({ articleCardRef, visible = true }) => {
   // 工具栏DOM引用
   const toolbarRef = useRef<HTMLDivElement>(null)
   // 容器DOM引用
   const containerRef = useRef<HTMLDivElement>(null)
+  // 配置状态
+  const [isConfigured, setIsConfigured] = useState(false)
+
+  // 检查配置状态
+  useEffect(() => {
+    const checkConfig = async () => {
+      try {
+        const dbManager = IndexedDBManager.getInstance()
+        await dbManager.initialize()
+
+        const baseUrl = await dbManager.getData('baseUrl')
+        const apiKey = await dbManager.getData('apiKey')
+        const selectedModel = await dbManager.getData('selectedModel')
+
+        setIsConfigured(!!baseUrl && !!apiKey && !!selectedModel)
+      } catch (error) {
+        console.error('检查配置时发生错误:', error)
+        setIsConfigured(false)
+      }
+    }
+
+    checkConfig()
+  }, [])
 
   useEffect(() => {
     /**
@@ -100,7 +118,7 @@ export function ToolBar({ articleCardRef, visible = true }: ToolBarProps) {
         }}
       >
         <div className={styles.toolbarContent}>
-          <SummaryButton />
+          <SummaryButton isConfigured={isConfigured} />
         </div>
       </div>
     </div>
