@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { LLMConfig } from "~/pages/options/components/LLMConfig"
 import { GeneralConfig } from "~/pages/options/components/GeneralConfig"
 import logo from "data-base64:~/assets/icons/logo.svg"
@@ -32,6 +32,34 @@ const Options: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState(navItems[0].id)
 
+  // 处理 URL hash 变化
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1) // 移除 '#' 符号
+      const targetTab = navItems.find(item => item.id === hash)
+      if (targetTab) {
+        setActiveTab(targetTab.id)
+      }
+    }
+
+    // 初始化时处理 hash
+    handleHashChange()
+
+    // 监听 hash 变化
+    window.addEventListener('hashchange', handleHashChange)
+
+    // 清理监听器
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange)
+    }
+  }, [])
+
+  // 处理标签切换
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId)
+    window.location.hash = tabId // 更新 URL hash
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -53,7 +81,7 @@ const Options: React.FC = () => {
                 {navItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => handleTabChange(item.id)}
                     className={`w-full flex items-center px-6 py-3 text-sm font-medium transition-colors duration-150 ${
                       activeTab === item.id
                         ? "text-blue-600 bg-blue-50 border-r-2 border-blue-600"

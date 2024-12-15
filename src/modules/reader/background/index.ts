@@ -106,6 +106,17 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'PARSED_CONTENT' && sender.tab?.id) {
     articleCache.set(sender.tab.id, message.data)
+  } else if (message.type === 'OPEN_OPTIONS_PAGE') {
+    // 处理打开选项页的消息
+    try {
+      chrome.tabs.create({
+        url: chrome.runtime.getURL(`options.html${message.hash || ''}`)
+      });
+      sendResponse({ success: true });
+    } catch (error) {
+      logger.error('打开选项页失败:', error);
+      sendResponse({ success: false, error });
+    }
   }
   return true
 })
