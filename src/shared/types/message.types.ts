@@ -6,6 +6,8 @@ export type MessageType =
   | 'PARSE_CONTENT'
   | 'TOGGLE_READER_MODE'
   | 'PARSED_CONTENT'
+  | 'CHECK_LLM_CONFIG'
+  | 'CHECK_LLM_CONFIG_RESPONSE'
 
 /**
  * 基础消息接口
@@ -48,10 +50,36 @@ export interface ParsedContentMessage extends BaseMessage {
 }
 
 /**
+ * LLM配置检查请求消息
+ * @interface CheckLLMConfigMessage
+ * @extends {BaseMessage}
+ */
+export interface CheckLLMConfigMessage extends BaseMessage {
+  type: 'CHECK_LLM_CONFIG'
+}
+
+/**
+ * LLM配置检查响应消息
+ * @interface CheckLLMConfigResponse
+ * @extends {BaseMessage}
+ */
+export interface CheckLLMConfigResponse extends BaseMessage {
+  type: 'CHECK_LLM_CONFIG_RESPONSE'
+  isConfigured: boolean
+  config?: {
+    baseUrl?: string
+    apiKey?: string
+    selectedModel?: string
+  }
+}
+
+/**
  * 消息联合类型
  * @type {Message}
  */
 export type Message = 
   | ParseContentMessage 
   | ToggleReaderModeMessage
-  | ParsedContentMessage 
+  | ParsedContentMessage
+  | CheckLLMConfigMessage
+  | CheckLLMConfigResponse

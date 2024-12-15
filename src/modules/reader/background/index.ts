@@ -2,6 +2,9 @@ import { createLogger } from "~/shared/utils/logger"
 import { IconManagerService } from "../services/icon-manager.service"
 import { ContentScriptManagerService } from "../services/content-script-manager.service"
 import { ArticleCacheService } from "../services/article-cache.service"
+import { messageService } from '~/core/services/message.service'
+import { llmConfigService } from '~/core/services/llm-config.service'
+import type { Message } from '~/shared/types/message.types'
 
 const logger = createLogger("background")
 const iconManager = new IconManagerService()
@@ -117,9 +120,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       logger.error('打开选项页失败:', error);
       sendResponse({ success: false, error });
     }
+  } else if (message.type === 'CHECK_LLM_CONFIG') {
+    handleCheckLLMConfig()
+      .then(sendResponse)
+      .catch(error => {
+        logger.error('处理CHECK_LLM_CONFIG消息失败:', error)
+        sendResponse({ type: 'CHECK_LLM_CONFIG', isConfigured: false })
+      })
+    return true // 表示会异步发送响应
   }
   return true
 })
+
+/**
+ * 处理CHECK_LLM_CONFIG消息
+ */
+async function handleCheckLLMConfig(): Promise<Message> {
+  logger.info('开始检查LLM配置')
+  const result = await llmConfigService.checkConfig()
+  return {
+    type: 'CHECK_LLM_CONFIG_RESPONSE',
+    ...result
+  }
+}
 
 // 添加默认导出
 export default {} 

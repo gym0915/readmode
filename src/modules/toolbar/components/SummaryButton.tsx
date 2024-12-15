@@ -1,7 +1,11 @@
-import React from 'react';
-import '../theme/toolbar-button-theme.css';
-import styles from '../styles/ToolBar.module.css';
-import { MessageHandler } from '../../../shared/utils/message';
+import React, { useState } from 'react'
+import { messageService } from '~/core/services/message.service'
+import { createLogger } from '~/shared/utils/logger'
+import type { CheckLLMConfigResponse } from '~/shared/types/message.types'
+import { MessageHandler } from '~/shared/utils/message'
+import styles from '../styles/ToolBar.module.css'
+
+const logger = createLogger('summary-button')
 
 /**
  * 文章总结图标组件
@@ -31,63 +35,62 @@ const SummaryIcon: React.FC = () => (
     {/* 星标/重点标记 */}
     <path d="M9.5 9l1 1 2-2" />
   </svg>
-);
+)
 
-/**
- * 文章总结按钮组件的属性接口
- * @interface ISummaryButtonProps
- * @property {boolean} isConfigured - 是否已完成配置
- * @property {() => void} [onClick] - 点击事件处理函数
- */
-interface ISummaryButtonProps {
-  isConfigured: boolean;
-  onClick?: () => void;
-}
+export const SummaryButton: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(false)
+  const messageHandler = MessageHandler.getInstance()
 
-/**
- * 文章总结按钮组件
- * 用于触发文章总结功能的工具栏按钮
- * 
- * @component
- * @param {ISummaryButtonProps} props - 组件属性
- * @returns {JSX.Element} 渲染的文章总结按钮组件
- */
-export const SummaryButton: React.FC<ISummaryButtonProps> = ({ isConfigured, onClick }) => {
-  const messageHandler = MessageHandler.getInstance();
+  const handleClick = async () => {
+    try {
+      setIsLoading(true)
 
-  const handleClick = () => {
-    if (!isConfigured) {
-      messageHandler.warningWithLink({
-        message: '请先完成模型配置',
-        linkText: '前往设置',
-        onClick: () => {
-          // 发送消息到后台脚本以打开选项页
-          chrome.runtime.sendMessage({ 
-            type: 'OPEN_OPTIONS_PAGE', 
-            hash: '#model' 
-          }, (response) => {
-            if (chrome.runtime.lastError) {
-              messageHandler.error('无法打开设置页面');
-              return;
-            }
-            if (!response?.success) {
-              messageHandler.error('无法打开设置页面');
-            }
-          });
-        }
-      });
-      return;
+      // 1. 检查LLM配置
+      const response = await messageService.sendToBackground({
+        type: 'CHECK_LLM_CONFIG'
+      }) as CheckLLMConfigResponse
+
+      if (!response.isConfigured) {
+        messageHandler.warningWithLink({
+          message: '请先完成模型配置',
+          linkText: '前往设置',
+          onClick: () => {
+            // 发送消息到后台脚本以打开选项页
+            chrome.runtime.sendMessage({ 
+              type: 'OPEN_OPTIONS_PAGE', 
+              hash: '#model' 
+            }, (response) => {
+              if (chrome.runtime.lastError) {
+                messageHandler.error('无法打开设置页面')
+                return
+              }
+              if (!response?.success) {
+                messageHandler.error('无法打开设置页面')
+              }
+            })
+          }
+        })
+        return
+      }
+
+      // TODO: 继续文章总结逻辑
+      
+    } catch (error) {
+      logger.error('处理总结请求失败:', error)
+      messageHandler.error('处理总结请求失败')
+    } finally {
+      setIsLoading(false)
     }
-    onClick?.();
-  };
+  }
 
   return (
     <button 
       className={styles.toolbarButton}
       onClick={handleClick}
+      disabled={isLoading}
       title="文章总结"
     >
       <SummaryIcon />
     </button>
-  );
-}; 
+  )
+} 
