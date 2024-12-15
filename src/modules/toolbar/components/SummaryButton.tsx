@@ -57,7 +57,18 @@ export const SummaryButton: React.FC<ISummaryButtonProps> = ({ isConfigured, onC
 
   const handleClick = () => {
     if (!isConfigured) {
-      messageHandler.warning('请先在选项页面完成模型配置');
+      // 跳转到选项页的模型配置标签
+      const navigateToOptions = () => {
+        chrome.tabs.create({
+          url: chrome.runtime.getURL('options.html#model-config')
+        });
+      };
+
+      messageHandler.warningWithLink({
+        message: '请先完成模型配置',
+        linkText: '前往设置',
+        onClick: navigateToOptions
+      });
       return;
     }
     onClick?.();

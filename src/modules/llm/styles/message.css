@@ -117,4 +117,27 @@
     transform: translateX(100%);
     opacity: 0;
   }
+}
+
+/* 添加到 message.css */
+.toast-container {
+  isolation: isolate; /* 创建新的堆叠上下文 */
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 2147483649;
+  pointer-events: auto !important; /* 强制启用鼠标事件 */
+}
+
+.toast-content {
+  position: relative;
+  z-index: 2147483649;
+  pointer-events: auto !important;
+}
+
+.toast-link {
+  position: relative;
+  z-index: 2147483650;
+  cursor: pointer !important;
+  pointer-events: auto !important;
 } 

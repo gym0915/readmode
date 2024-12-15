@@ -26,10 +26,17 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClose }) =>
 
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        style={{ zIndex: 2147483649 }}
-      />
+      <div id="toast-root-container" style={{ 
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        zIndex: 2147483649 // 确保最高层级
+      }}>
+        <ToastContainer
+          position="top-right"
+          style={{ zIndex: 2147483649 }}
+        />
+      </div>
       <div className={styles.cardContainer}>
         <div ref={cardRef} className={styles.card}>
           {/* 文章头部信息 */}
