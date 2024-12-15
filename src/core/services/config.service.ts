@@ -37,7 +37,7 @@ export class ConfigService {
    */
   async getConfig(): Promise<ReaderConfig> {
     try {
-      const result = await chrome.storage.sync.get(ConfigService.STORAGE_KEY)
+      const result = await chrome.storage.local.get(ConfigService.STORAGE_KEY)
       return { ...this.defaultConfig, ...result[ConfigService.STORAGE_KEY] }
     } catch (error) {
       logger.error('Failed to get config:', error)
@@ -54,7 +54,7 @@ export class ConfigService {
     try {
       const currentConfig = await this.getConfig()
       const newConfig = { ...currentConfig, ...config }
-      await chrome.storage.sync.set({
+      await chrome.storage.local.set({
         [ConfigService.STORAGE_KEY]: newConfig
       })
       logger.info('Config saved successfully')
@@ -70,7 +70,7 @@ export class ConfigService {
    */
   async resetConfig(): Promise<void> {
     try {
-      await chrome.storage.sync.remove(ConfigService.STORAGE_KEY)
+      await chrome.storage.local.remove(ConfigService.STORAGE_KEY)
       logger.info('Config reset to defaults')
     } catch (error) {
       logger.error('Failed to reset config:', error)

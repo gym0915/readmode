@@ -27,6 +27,7 @@ export interface IMessageDetails {
  */
 interface IToastConfig extends ToastOptions {
   onClick?: () => void;
+  container?: HTMLElement;
 }
 
 /**
@@ -296,7 +297,7 @@ export class MessageHandler {
   }
 
   /**
-   * 处理��误消息
+   * 处理错误消息
    * @param message - 错误消息
    * @param details - 错误详情
    */
@@ -339,7 +340,7 @@ export class MessageHandler {
       if (error instanceof TypeError) {
         this.error('输入数据类型错误，请检查输入')
       } else if (error instanceof SyntaxError) {
-        this.error('数据格式错误，请检查输��')
+        this.error('数据据格式错误，请检查输')
       } else if (error.name === 'NetworkError' || error.message.includes('network')) {
         this.error('网络连接失败，请检查网络设置')
       } else if (error.message.toLowerCase().includes('api key')) {
