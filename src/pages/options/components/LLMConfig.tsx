@@ -3,6 +3,7 @@ import type { IModelInfo } from "~/modules/llm/types"
 import { createLogger, ELogLevel } from "~/shared/utils/logger"
 import { MessageHandler } from "~/modules/llm/utils/message"
 import { LLMService } from "~/modules/llm"
+import { CryptoManager } from "~/shared/utils/crypto-manager"
 
 interface ILLMConfigState {
   apiKey: string
@@ -32,9 +33,17 @@ export const LLMConfig: React.FC = () => {
     try {
       const result = await chrome.storage.sync.get('llmConfig')
       if (result.llmConfig) {
-        const { apiKey: savedApiKey, baseUrl: savedBaseUrl, model: savedModel } = result.llmConfig
-        setApiKey(savedApiKey || '')
-        setBaseUrl(savedBaseUrl || '')
+        const { apiKey: encryptedApiKey, baseUrl: encryptedBaseUrl, model: savedModel } = result.llmConfig
+        
+        // 初始化加密管理器并解密数据
+        const cryptoManager = CryptoManager.getInstance()
+        await cryptoManager.initialize()
+        
+        const savedApiKey = encryptedApiKey ? await cryptoManager.decrypt(encryptedApiKey) : ''
+        const savedBaseUrl = encryptedBaseUrl ? await cryptoManager.decrypt(encryptedBaseUrl) : ''
+        
+        setApiKey(savedApiKey)
+        setBaseUrl(savedBaseUrl)
         setSelectedModel(savedModel || '')
         
         // 如果有保存的配置，自动验证获取模型列表
@@ -57,7 +66,7 @@ export const LLMConfig: React.FC = () => {
   }
 
   /**
-   * 组件挂载时加载配置
+   * 组件挂��时加载配置
    */
   useEffect(() => {
     void loadSavedConfig()
@@ -107,27 +116,53 @@ export const LLMConfig: React.FC = () => {
    * 保存配置
    */
   const handleSave = async () => {
+    logger.info('[LLMConfig] 开始保存LLM配置');
     logger.debug('开始保存配置')
     setIsSaving(true)
 
     try {
-      // 1. 创建配置对象
+      // 1. 初始化加密管理器
+      logger.info('[LLMConfig] 开始初始化加密管理器')
+      const cryptoManager = CryptoManager.getInstance()
+      await cryptoManager.initialize()
+      logger.debug('[LLMConfig] 加密管理器初始化完成')
+
+      // 2. 加密敏感数据
+      logger.info('[LLMConfig] 开始加密敏感数据')
+      const encryptedApiKey = await cryptoManager.encrypt(apiKey)
+      const encryptedBaseUrl = await cryptoManager.encrypt(baseUrl)
+      logger.debug('[LLMConfig] 敏感数据加密完成', { 
+        apiKeyLength: encryptedApiKey.length,
+        baseUrlLength: encryptedBaseUrl.length 
+      })
+
+      // 3. 创建配置对象
+      logger.info('[LLMConfig] 创建配置对象')
       const config: ILLMConfigState = {
-        apiKey,
-        baseUrl,
+        apiKey: encryptedApiKey,
+        baseUrl: encryptedBaseUrl,
         model: selectedModel
       }
+      logger.debug('[LLMConfig] 配置对象创建完成', { model: selectedModel })
 
-      // 2. 保存到 Chrome 存储
+      // 4. 保存到 Chrome 存储
+      logger.info('[LLMConfig] 开始保存配置到Chrome存储')
       await chrome.storage.sync.set({
         llmConfig: config
       })
+      logger.debug('[LLMConfig] 配置已保存到Chrome存储')
 
-      // 3. 通知其他部分配置已更新
+      // 5. 通知其他部分配置已更新
+      logger.info('[LLMConfig] 发送配置更新消息')
       chrome.runtime.sendMessage({
         type: 'LLM_CONFIG_UPDATED',
-        data: config
+        data: {
+          apiKey,  // 发送解密后的数据给其他组件使用
+          baseUrl,
+          model: selectedModel
+        }
       })
+      logger.debug('[LLMConfig] 配置更新消息已发送')
 
       messageHandler.success('配置保存成功')
     } catch (err) {
@@ -207,7 +242,7 @@ export const LLMConfig: React.FC = () => {
         </button>
       </div>
 
-      {/* 模型选择下拉框和保存按钮 */}
+      {/* 模型选择下���框和保存按钮 */}
       <div className="space-y-4">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">

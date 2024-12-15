@@ -12,8 +12,9 @@ interface NavItem {
   component: React.ReactNode
 }
 
+// 修改导出方式
 const Options: React.FC = () => {
-  // 定义导航项
+  // 记录组件初始化日志
   const navItems: NavItem[] = [
     {
       id: "general",
@@ -97,4 +98,5 @@ const Options: React.FC = () => {
   )
 }
 
+// 只使用默认导出，避免混合导出方式
 export default Options 

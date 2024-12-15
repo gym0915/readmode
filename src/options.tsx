@@ -1,6 +1,6 @@
 import React from "react"
 import { createRoot } from "react-dom/client"
-import Options from "./pages/options/Options"
+import Options from "./pages/options/Options.tsx"
 import { ToastContainer } from 'react-toastify'
 import "./style.css"
 import 'react-toastify/dist/ReactToastify.css'
