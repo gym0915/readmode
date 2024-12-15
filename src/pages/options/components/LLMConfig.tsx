@@ -4,11 +4,21 @@ import { createLogger, ELogLevel } from "~/shared/utils/logger"
 import { MessageHandler } from "~/modules/llm/utils/message"
 import { LLMService } from "~/modules/llm"
 import { CryptoManager } from "~/shared/utils/crypto-manager"
+import { IndexedDBManager } from "~/shared/utils/indexed-db"
+
+// 常量定义
+const MODEL_DATA_KEY = "modelData"
+const STORAGE_CONFIG_KEY = "llmConfig"
 
 interface ILLMConfigState {
   apiKey: string
   baseUrl: string
   model?: string
+}
+
+interface IModelData {
+  selectedModel: string
+  modelList: IModelInfo[]
 }
 
 // 创建日志记录器和消息处理器
@@ -31,9 +41,28 @@ export const LLMConfig: React.FC = () => {
   const loadSavedConfig = async () => {
     logger.debug('开始加载已保存配置')
     try {
-      const result = await chrome.storage.sync.get('llmConfig')
-      if (result.llmConfig) {
-        const { apiKey: encryptedApiKey, baseUrl: encryptedBaseUrl, model: savedModel } = result.llmConfig
+      // 初始化 IndexedDB
+      const indexedDB = IndexedDBManager.getInstance()
+      await indexedDB.initialize()
+
+      // 加载模型数据
+      const modelData = await indexedDB.getData(MODEL_DATA_KEY) as IModelData | undefined
+      if (modelData) {
+        setModels(modelData.modelList)
+        setSelectedModel(modelData.selectedModel)
+        logger.debug('已从 IndexedDB 加载模型数据', { 
+          modelCount: modelData.modelList.length,
+          selectedModel: modelData.selectedModel 
+        })
+      }
+
+      // 加载加密的配置数据
+      const result = await chrome.storage.local.get(STORAGE_CONFIG_KEY)
+      if (result[STORAGE_CONFIG_KEY]) {
+        const { 
+          apiKey: encryptedApiKey, 
+          baseUrl: encryptedBaseUrl
+        } = result[STORAGE_CONFIG_KEY]
         
         // 初始化加密管理器并解密数据
         const cryptoManager = CryptoManager.getInstance()
@@ -44,21 +73,7 @@ export const LLMConfig: React.FC = () => {
         
         setApiKey(savedApiKey)
         setBaseUrl(savedBaseUrl)
-        setSelectedModel(savedModel || '')
-        
-        // 如果有保存的配置，自动验证获取模型列表
-        if (savedApiKey && savedBaseUrl) {
-          logger.debug('开始验证已保存配置')
-          const llmService = new LLMService({
-            apiKey: savedApiKey,
-            baseUrl: savedBaseUrl
-          })
-          const response = await llmService.validateAndGetModels()
-          setModels(response.data)
-          messageHandler.success('配置加载成功')
-        }
-      } else {
-        logger.info('未找到已保存的配置')
+        logger.debug('已加载加密配置')
       }
     } catch (err) {
       messageHandler.handleError(err, '加载配置失败')
@@ -66,7 +81,7 @@ export const LLMConfig: React.FC = () => {
   }
 
   /**
-   * 组件挂��时加载配置
+   * 组件挂载时加载配置
    */
   useEffect(() => {
     void loadSavedConfig()
@@ -80,13 +95,11 @@ export const LLMConfig: React.FC = () => {
     setIsLoading(true)
 
     try {
-      // 创建 LLM 服务实例
       const llmService = new LLMService({
         apiKey,
         baseUrl
       })
 
-      // 获取模型列表
       const response = await llmService.validateAndGetModels()
       
       if (response.data.length === 0) {
@@ -95,9 +108,10 @@ export const LLMConfig: React.FC = () => {
       }
 
       setModels(response.data)
+      logger.debug('成功获取模型列表', { count: response.data.length })
       
-      // 如果有模型，默认选择第一个
-      if (response.data.length > 0) {
+      // 如果没有选中的模型，默认选择第一个
+      if (!selectedModel && response.data.length > 0) {
         setSelectedModel(response.data[0].id)
         logger.debug('自动选择默认模型', { model: response.data[0].id })
       }
@@ -116,53 +130,47 @@ export const LLMConfig: React.FC = () => {
    * 保存配置
    */
   const handleSave = async () => {
-    logger.info('[LLMConfig] 开始保存LLM配置');
-    logger.debug('开始保存配置')
+    logger.info('开始保存LLM配置')
     setIsSaving(true)
 
     try {
-      // 1. 初始化加密管理器
-      logger.info('[LLMConfig] 开始初始化加密管理器')
+      // 保存模型数据到 IndexedDB
+      const indexedDB = IndexedDBManager.getInstance()
+      await indexedDB.initialize()
+      await indexedDB.saveData(MODEL_DATA_KEY, {
+        selectedModel,
+        modelList: models
+      })
+      logger.debug('模型数据已保存到 IndexedDB')
+
+      // 加密并保存敏感配置到 Chrome Storage
       const cryptoManager = CryptoManager.getInstance()
       await cryptoManager.initialize()
-      logger.debug('[LLMConfig] 加密管理器初始化完成')
 
-      // 2. 加密敏感数据
-      logger.info('[LLMConfig] 开始加密敏感数据')
       const encryptedApiKey = await cryptoManager.encrypt(apiKey)
       const encryptedBaseUrl = await cryptoManager.encrypt(baseUrl)
-      logger.debug('[LLMConfig] 敏感数据加密完成', { 
-        apiKeyLength: encryptedApiKey.length,
-        baseUrlLength: encryptedBaseUrl.length 
-      })
 
-      // 3. 创建配置对象
-      logger.info('[LLMConfig] 创建配置对象')
       const config: ILLMConfigState = {
         apiKey: encryptedApiKey,
         baseUrl: encryptedBaseUrl,
         model: selectedModel
       }
-      logger.debug('[LLMConfig] 配置对象创建完成', { model: selectedModel })
 
-      // 4. 保存到 Chrome 存储
-      logger.info('[LLMConfig] 开始保存配置到Chrome存储')
-      await chrome.storage.sync.set({
-        llmConfig: config
+      await chrome.storage.local.set({
+        [STORAGE_CONFIG_KEY]: config
       })
-      logger.debug('[LLMConfig] 配置已保存到Chrome存储')
+      logger.debug('加密配置已保存到 Chrome Storage')
 
-      // 5. 通知其他部分配置已更新
-      logger.info('[LLMConfig] 发送配置更新消息')
+      // 通知其他组件配置已更新
       chrome.runtime.sendMessage({
         type: 'LLM_CONFIG_UPDATED',
         data: {
-          apiKey,  // 发送解密后的数据给其他组件使用
+          apiKey,
           baseUrl,
-          model: selectedModel
+          model: selectedModel,
+          modelList: models
         }
       })
-      logger.debug('[LLMConfig] 配置更新消息已发送')
 
       messageHandler.success('配置保存成功')
     } catch (err) {
@@ -242,7 +250,7 @@ export const LLMConfig: React.FC = () => {
         </button>
       </div>
 
-      {/* 模型选择下���框和保存按钮 */}
+      {/* 模型选择下拉框和保存按钮 */}
       <div className="space-y-4">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
