@@ -23,7 +23,7 @@ import { ArticleCacheService } from './article-cache.service'
 import type { IArticle } from '~/modules/reader/types/article.types'
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
-import { ArticleCard } from '../components/ArticleCard'
+import { ReaderApp } from '../components/ReaderApp'
 
 const logger = createLogger('reader-content')
 
@@ -117,14 +117,14 @@ export class ReaderContentService {
       const article = await this.parserService.parseDocument(document)
       const isReaderMode = this.frameService.toggleFrame(true)
       
-      // 创建并渲染 ArticleCard
+      // 创建并渲染 ReaderApp
       this.cleanupRoot()
       this.root = document.createElement('div')
       this.root.id = 'reader-root'
       document.body.appendChild(this.root)
       
       const reactRoot = createRoot(this.root)
-      reactRoot.render(React.createElement(ArticleCard, { article }))
+      reactRoot.render(React.createElement(ReaderApp, { article }))
 
       logger.info('Content parsing completed:', {
         title: article.title,
@@ -168,16 +168,16 @@ export class ReaderContentService {
         // 退出阅读模式时清理
         this.cleanupRoot()
       } else if (article) {
-        // 仅在进入阅读模式且有文章数据时重新渲染
+        // 仅在进���阅读模式且有文章数据时重新渲染
         this.cleanupRoot() // 先清理可能存在的旧实例
         this.root = document.createElement('div')
         this.root.id = 'reader-root'
         document.body.appendChild(this.root)
         
         const reactRoot = createRoot(this.root)
-        reactRoot.render(React.createElement(ArticleCard, { article }))
+        reactRoot.render(React.createElement(ReaderApp, { article }))
         
-        logger.debug('Article card re-rendered from cache')
+        logger.debug('Reader app re-rendered from cache')
       }
 
       logger.debug('Reader mode toggled:', {

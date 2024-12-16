@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { messageService } from '~/core/services/message.service'
 import { createLogger } from '~/shared/utils/logger'
 import type { CheckLLMConfigResponse } from '~/shared/types/message.types'
@@ -6,6 +6,7 @@ import { MessageHandler } from '~/shared/utils/message'
 import styles from '../styles/ToolBar.module.css'
 
 const logger = createLogger('summary-button')
+const messageHandler = MessageHandler.getInstance()
 
 /**
  * 文章总结图标组件
@@ -39,17 +40,35 @@ const SummaryIcon: React.FC = () => (
 
 interface SummaryButtonProps {
   onVisibilityChange?: (visible: boolean) => void
+  onClick?: () => void
 }
 
-export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange }) => {
+export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange, onClick }) => {
   const [isLoading, setIsLoading] = useState(false)
-  const messageHandler = MessageHandler.getInstance()
 
-  const handleClick = async () => {
+  const openOptionsPage = useMemo(() => () => {
+    chrome.runtime.sendMessage({ 
+      type: 'OPEN_OPTIONS_PAGE', 
+      hash: '#model' 
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        messageHandler.error('无法打开设置页面')
+        return
+      }
+      if (!response?.success) {
+        messageHandler.error('无法打开设置页面')
+      }
+    })
+  }, [])
+
+  const handleClick = useCallback(async () => {
+    if (isLoading) return
+
     try {
+      /*
       setIsLoading(true)
 
-      // 1. 检查LLM配置
+      1. 检查LLM配置
       const response = await messageService.sendToBackground({
         type: 'CHECK_LLM_CONFIG'
       }) as CheckLLMConfigResponse
@@ -58,37 +77,26 @@ export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange
         messageHandler.warningWithLink({
           message: '请先完成模型配置',
           linkText: '前往设置',
-          onClick: () => {
-            // 发送消息到后台脚本以打开选项页
-            chrome.runtime.sendMessage({ 
-              type: 'OPEN_OPTIONS_PAGE', 
-              hash: '#model' 
-            }, (response) => {
-              if (chrome.runtime.lastError) {
-                messageHandler.error('无法打开设置页面')
-                return
-              }
-              if (!response?.success) {
-                messageHandler.error('无法打开设置页面')
-              }
-            })
-          }
+          onClick: openOptionsPage
         })
         return
       }
 
-      // 如果模型配置验证通过，隐藏工具栏
-      onVisibilityChange?.(false)
+      如果模型配置验证通过，先触发总结事件，再隐藏工具栏
+      */
+      onClick?.()
+      // 使用Promise.resolve().then确保状态更新在渲染完成后执行
+      Promise.resolve().then(() => {
+        onVisibilityChange?.(false)
+      })
 
-      // TODO: 继续文章总结逻辑
-      
     } catch (error) {
       logger.error('处理总结请求失败:', error)
       messageHandler.error('处理总结请求失败')
     } finally {
-      setIsLoading(false)
+      // setIsLoading(false)
     }
-  }
+  }, [isLoading, onClick, onVisibilityChange, openOptionsPage])
 
   return (
     <button 
