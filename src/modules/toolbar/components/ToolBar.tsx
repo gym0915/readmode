@@ -5,12 +5,10 @@ import { SummaryButton } from './SummaryButton'
 /**
  * ToolBar组件的属性接口定义
  * @interface ToolBarProps
- * @property {React.RefObject<HTMLDivElement>} articleCardRef - 文章卡片的DOM引用
  * @property {boolean} [visible=false] - 控制工具栏的显示状态，默认为隐藏
  * @property {function} [onVisibilityChange] - 控制工具栏显示状态的回调函数
  */
 interface ToolBarProps {
-  articleCardRef: React.RefObject<HTMLDivElement>
   visible?: boolean
   onVisibilityChange?: (visible: boolean) => void
 }
@@ -24,84 +22,26 @@ interface ToolBarProps {
  * @returns {JSX.Element} 工具栏组件
  */
 export const ToolBar: React.FC<ToolBarProps> = ({ 
-  articleCardRef, 
   visible = true,
   onVisibilityChange 
 }) => {
   // 工具栏DOM引用
   const toolbarRef = useRef<HTMLDivElement>(null)
-  // 容器DOM引用
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    /**
-     * 更新工具栏位置的函数
-     * 根据文章卡片位置和浏览器窗口大小计算工具栏的最佳位置
-     */
-    const updateToolbarPosition = () => {
-      if (!toolbarRef.current || !articleCardRef.current || !containerRef.current) return
-
-      const articleCard = articleCardRef.current
-      const articleRect = articleCard.getBoundingClientRect()
-      
-      // 更新容器位置到文章卡片右侧
-      containerRef.current.style.position = 'absolute'
-      containerRef.current.style.left = `${articleRect.right}px`
-      containerRef.current.style.width = '0'
-      containerRef.current.style.height = `${articleRect.height}px`
-      
-      // 计算工具栏在容器内的位置
-      const toolbarHeight = toolbarRef.current.offsetHeight
-      
-      // 计算垂直居中位置（使用浏览器窗口高度）
-      const browserHeight = window.innerHeight || document.documentElement.clientHeight
-      const verticalCenter = Math.max(0, (browserHeight - toolbarHeight) / 2)
-      
-      // 更新工具栏位置和显示状态
-      toolbarRef.current.style.position = 'fixed'
-      toolbarRef.current.style.left = `${articleRect.right + 20}px` // 距离文章右侧20px
-      toolbarRef.current.style.top = `${verticalCenter}px`
-      // 根据visible属性控制显示状态
-      toolbarRef.current.style.opacity = visible ? '1' : '0'
-      toolbarRef.current.style.pointerEvents = visible ? 'auto' : 'none' // 控制鼠标事件
-      toolbarRef.current.style.transition = 'opacity 0.3s ease-in-out' // 添加过渡动画
-    }
-
-    // 使用 ResizeObserver 监听文章卡片尺寸变化
-    const resizeObserver = new ResizeObserver(() => {
-      requestAnimationFrame(updateToolbarPosition)
-    })
-
-    // 开始观察文章卡片尺寸变化
-    if (articleCardRef.current) {
-      resizeObserver.observe(articleCardRef.current)
-    }
-
-    // 初始化工具栏位置
-    updateToolbarPosition()
-
-    // 监听窗口大小变化
-    window.addEventListener('resize', updateToolbarPosition)
-
-    // 清理副作用
-    return () => {
-      resizeObserver.disconnect()
-      window.removeEventListener('resize', updateToolbarPosition)
-    }
-  }, [articleCardRef, visible]) // 依赖项：文章卡片引用和显示状态
 
   return (
-    <div ref={containerRef} className={styles.toolbarContainer}>
-      <div 
-        ref={toolbarRef} 
-        className={styles.toolbar}
-        style={{
-          visibility: visible ? 'visible' : 'hidden' // 控制DOM可见性
-        }}
-      >
-        <div className={styles.toolbarContent}>
-          <SummaryButton onVisibilityChange={onVisibilityChange} />
-        </div>
+    <div 
+      ref={toolbarRef} 
+      className={styles.toolbar}
+      style={{
+        visibility: visible ? 'visible' : 'hidden',
+        opacity: visible ? '1' : '0',
+        pointerEvents: visible ? 'auto' : 'none',
+        transition: 'opacity 0.3s ease-in-out'
+      }}
+      title="文章总结" // 添加悬浮提示
+    >
+      <div className={styles.toolbarContent}>
+        <SummaryButton onVisibilityChange={onVisibilityChange} />
       </div>
     </div>
   )

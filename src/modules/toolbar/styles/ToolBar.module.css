@@ -1,51 +1,10 @@
-.toolbarIcon {
-  color: var(--toolbar-icon-color);
-  transition: color 0.2s ease-in-out;
-  opacity: 0.9;
-}
-
-.toolbarButton {
-  width: var(--toolbar-btn-size);
-  height: var(--toolbar-btn-size);
-  padding: var(--toolbar-btn-padding);
-  border-radius: var(--toolbar-btn-radius);
-  border: none;
-  background: var(--toolbar-btn-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.toolbarButton:hover {
-  background: var(--toolbar-btn-hover-bg);
-  transform: scale(1.05);
-}
-
-.toolbarButton:hover .toolbarIcon {
-  color: var(--toolbar-icon-hover-color);
-}
-
-.toolbarButton:active {
-  background: var(--toolbar-btn-active-bg);
-  transform: scale(0.95);
-}
-
-.toolbarButton:active .toolbarIcon {
-  color: var(--toolbar-icon-active-color);
-}
-
-.toolbarContainer {
-  position: relative;
-  z-index: 1000;
-}
-
 .toolbar {
+  position: fixed;
+  right: 20px;
+  top: 100px;
+  z-index: 1000;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
 .toolbarContent {
@@ -55,4 +14,73 @@
   padding: 8px;
   background: transparent;
   border: none;
-} 
+}
+
+.toolbarIcon {
+  color: var(--toolbar-icon-color, #666);
+  transition: color 0.2s ease-in-out;
+  opacity: 0.9;
+  width: 20px;
+  height: 20px;
+}
+
+.toolbarButton {
+  width: var(--toolbar-btn-size, 36px);
+  height: var(--toolbar-btn-size, 36px);
+  padding: var(--toolbar-btn-padding, 8px);
+  border-radius: 50%;
+  border: none;
+  background: var(--toolbar-btn-bg, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.toolbarButton::after {
+  content: attr(title);
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) scale(0.8);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.toolbarButton:hover {
+  background: var(--toolbar-btn-hover-bg, #f8f9fa);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.toolbarButton:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) scale(1);
+}
+
+.toolbarButton:hover .toolbarIcon {
+  color: var(--toolbar-icon-hover-color, #1a73e8);
+  opacity: 1;
+}
+
+.toolbarButton:active {
+  background: var(--toolbar-btn-active-bg, #f1f3f4);
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.toolbarButton:active .toolbarIcon {
+  color: var(--toolbar-icon-active-color, #174ea6);
+}
