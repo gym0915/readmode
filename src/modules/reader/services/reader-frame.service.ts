@@ -49,11 +49,10 @@ export class ReaderFrameService {
       width: 100vw;
       height: 100vh;
       border: none;
-      background: #FAF2E2;
-      z-index: 2147483647;
-      opacity: 0.5;
-      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      will-change: opacity;
+      background: #ffffff;
+      z-index: 2147483646;
+      opacity: 0;
+      transition: opacity 0.3s ease;
       margin: 0;
       padding: 0;
       right: 0;
