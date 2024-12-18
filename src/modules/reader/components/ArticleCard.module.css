@@ -4,7 +4,7 @@
   height: 100% !important;
   overflow-y: auto !important;
   padding: 2rem 1rem !important;
-  background: #FFF2E2 !important;
+  background: #ffffff !important;
   display: flex !important;
   justify-content: center !important;
   z-index: 2147483647 !important;
@@ -57,7 +57,7 @@
   color: #4a4a4a;
   margin-bottom: 3rem;
   padding: 2rem;
-  background: #FAF2E2;
+  background: #ffffff;
   border-left: 3px solid #e9ecef;
   
   /* 添加对摘要中HTML元素的样式支持 */

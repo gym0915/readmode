@@ -4,6 +4,7 @@ import { createLogger } from '~/shared/utils/logger'
 import type { CheckLLMConfigResponse } from '~/shared/types/message.types'
 import { MessageHandler } from '~/shared/utils/message'
 import styles from '../styles/ToolBar.module.css'
+import { useReaderStore } from '~/modules/reader/store/reader'
 
 const logger = createLogger('summary-button')
 const messageHandler = MessageHandler.getInstance()
@@ -43,8 +44,9 @@ interface SummaryButtonProps {
   onClick?: () => void
 }
 
-export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange, onClick }) => {
+export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange }) => {
   const [isLoading, setIsLoading] = useState(false)
+  const toggleSummary = useReaderStore((state) => state.toggleSummary)
 
   const openOptionsPage = useMemo(() => () => {
     chrome.runtime.sendMessage({ 
@@ -65,38 +67,15 @@ export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange
     if (isLoading) return
 
     try {
-      /*
-      setIsLoading(true)
-
-      1. 检查LLM配置
-      const response = await messageService.sendToBackground({
-        type: 'CHECK_LLM_CONFIG'
-      }) as CheckLLMConfigResponse
-
-      if (!response.isConfigured) {
-        messageHandler.warningWithLink({
-          message: '请先完成模型配置',
-          linkText: '前往设置',
-          onClick: openOptionsPage
-        })
-        return
-      }
-
-      如果模型配置验证通过，先触发总结事件，再隐藏工具栏
-      */
-      onClick?.()
-      // 使用Promise.resolve().then确保状态更新在渲染完成后执行
+      toggleSummary()
       Promise.resolve().then(() => {
         onVisibilityChange?.(false)
       })
-
     } catch (error) {
       logger.error('处理总结请求失败:', error)
       messageHandler.error('处理总结请求失败')
-    } finally {
-      // setIsLoading(false)
     }
-  }, [isLoading, onClick, onVisibilityChange, openOptionsPage])
+  }, [isLoading, onVisibilityChange, toggleSummary])
 
   return (
     <button 
