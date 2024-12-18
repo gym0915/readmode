@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { ArticleCard } from './ArticleCard'
 import { ToolBar } from '../../toolbar/components/ToolBar'
 import { SummarySidebar } from './SummarySidebar'
@@ -16,6 +16,22 @@ interface ReaderContainerProps {
 export const ReaderContainer: React.FC<ReaderContainerProps> = ({ article }) => {
   const isSummaryVisible = useReaderStore((state) => state.isSummaryVisible)
   const toggleSummary = useReaderStore((state) => state.toggleSummary)
+  const [isSliding, setIsSliding] = useState(false)
+  const [toolbarVisible, setToolbarVisible] = useState(true)
+
+  const handleSummaryClose = useCallback(() => {
+    setIsSliding(true)
+    toggleSummary()
+    setToolbarVisible(true)
+    setTimeout(() => {
+      setIsSliding(false)
+    }, 0)
+  }, [toggleSummary])
+
+  const handleSummaryClick = useCallback(() => {
+    setToolbarVisible(false)
+    toggleSummary()
+  }, [toggleSummary])
 
   useEffect(() => {
     logger.info('ReaderContainer mounted', { 
@@ -51,18 +67,18 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ article }) => 
       >
         <ArticleCard article={article} />
         <ToolBar 
-          visible={true} 
-          onSummaryClick={toggleSummary}
+          visible={toolbarVisible} 
+          onSummaryClick={handleSummaryClick}
         />
       </div>
-      {isSummaryVisible && (
+      {(isSummaryVisible || isSliding) && (
         <div 
-          className={styles.reader_summary_panel}
+          className={`${styles.reader_summary_panel} ${isSliding ? styles.sliding_out : ''}`}
           role="complementary"
           aria-label="文章总结面板"
           data-testid="summary-panel"
         >
-          <SummarySidebar article={article} />
+          <SummarySidebar article={article} onClose={handleSummaryClose} />
         </div>
       )}
     </div>

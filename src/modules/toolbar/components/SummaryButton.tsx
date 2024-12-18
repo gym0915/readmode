@@ -44,38 +44,21 @@ interface SummaryButtonProps {
   onClick?: () => void
 }
 
-export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange }) => {
+export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange, onClick }) => {
   const [isLoading, setIsLoading] = useState(false)
   const toggleSummary = useReaderStore((state) => state.toggleSummary)
-
-  const openOptionsPage = useMemo(() => () => {
-    chrome.runtime.sendMessage({ 
-      type: 'OPEN_OPTIONS_PAGE', 
-      hash: '#model' 
-    }, (response) => {
-      if (chrome.runtime.lastError) {
-        messageHandler.error('无法打开设置页面')
-        return
-      }
-      if (!response?.success) {
-        messageHandler.error('无法打开设置页面')
-      }
-    })
-  }, [])
 
   const handleClick = useCallback(async () => {
     if (isLoading) return
 
     try {
+      onClick?.()
       toggleSummary()
-      Promise.resolve().then(() => {
-        onVisibilityChange?.(false)
-      })
     } catch (error) {
       logger.error('处理总结请求失败:', error)
       messageHandler.error('处理总结请求失败')
     }
-  }, [isLoading, onVisibilityChange, toggleSummary])
+  }, [isLoading, onClick, toggleSummary])
 
   return (
     <button 
