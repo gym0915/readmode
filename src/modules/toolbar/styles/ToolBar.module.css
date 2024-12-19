@@ -3,12 +3,12 @@
   right: 20px;
   top: 100px;
   z-index: 1000;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateX(0);
+  transition: opacity 0.3s ease;
+  opacity: 1;
 }
 
 .toolbar.hidden {
-  transform: translateX(200%);
+  opacity: 0;
   pointer-events: none;
 }
 
