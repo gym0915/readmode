@@ -1,10 +1,14 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from './SummarySidebar.module.css'
 import type { IArticle } from '../types/article.types'
 import { createLogger, ELogLevel } from '~/shared/utils/logger'
 import { useReaderStore } from '../store/reader'
+import { messageService } from '~/core/services/message.service'
+import type { CheckLLMConfigResponse } from '~/shared/types/message.types'
+import { MessageHandler } from '~/shared/utils/message'
 
 const logger = createLogger('SummarySidebar', ELogLevel.DEBUG)
+const messageHandler = MessageHandler.getInstance()
 
 interface SummarySidebarProps {
   article: IArticle
@@ -12,27 +16,75 @@ interface SummarySidebarProps {
 }
 
 export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose }) => {
+  const [isConfigured, setIsConfigured] = useState<boolean | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const toggleSummary = useReaderStore((state) => state.toggleSummary)
 
   useEffect(() => {
-    logger.info('SummarySidebar mounted', {
-      articleTitle: article.title,
-      styles: Object.keys(styles)
-    })
-    
+    const checkLLMConfig = async () => {
+      try {
+        setIsLoading(true)
+        const response = await messageService.sendToBackground({
+          type: 'CHECK_LLM_CONFIG'
+        }) as CheckLLMConfigResponse
+
+        setIsConfigured(response.isConfigured)
+        logger.info('LLM配置检查结果:', { isConfigured: response.isConfigured })
+      } catch (error) {
+        logger.error('检查LLM配置失败:', error)
+        messageHandler.error('检查模型配置失败')
+        setIsConfigured(false)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    void checkLLMConfig()
+
     return () => {
       logger.info('SummarySidebar unmounted')
     }
   }, [article])
 
-  logger.info('SummarySidebar rendering', {
-    hasArticle: !!article,
-    cssModules: {
-      container: styles.container,
-      header: styles.header,
-      content: styles.content
+  // 渲染配置提示内容
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className={styles.placeholder}>
+          <p>正在检查模型配置...</p>
+        </div>
+      )
     }
-  })
+
+    if (!isConfigured) {
+      return (
+        <div className={styles.configPrompt}>
+          <div className={styles.promptIcon}>⚙️</div>
+          <h3 className={styles.promptTitle}>请先完成模型配置</h3>
+          <p className={styles.promptDesc}>
+            需要配置 AI 模型才能使用文章总结功能
+          </p>
+          <button
+            className={styles.configButton}
+            onClick={() => {
+              void chrome.runtime.sendMessage({
+                type: 'OPEN_OPTIONS_PAGE',
+                hash: '#model'
+              })
+            }}
+          >
+            前往设置
+          </button>
+        </div>
+      )
+    }
+
+    return (
+      <div className={styles.placeholder}>
+        <p>正在生成文章总结...</p>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.container} data-testid="summary-sidebar">
@@ -61,10 +113,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
         <h2 className={styles.title}>文章总结</h2>
       </div>
       <div className={styles.content}>
-        {/* 总结内容将在后续实现 */}
-        <div className={styles.placeholder}>
-          <p>正在生成文章总结...</p>
-        </div>
+        {renderContent()}
       </div>
     </div>
   )
