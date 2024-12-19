@@ -8,6 +8,8 @@ export type MessageType =
   | 'PARSED_CONTENT'
   | 'CHECK_LLM_CONFIG'
   | 'CHECK_LLM_CONFIG_RESPONSE'
+  | 'CHAT_REQUEST'
+  | 'CHAT_RESPONSE'
 
 /**
  * 基础消息接口
@@ -74,6 +76,26 @@ export interface CheckLLMConfigResponse extends BaseMessage {
 }
 
 /**
+ * 对话请求消息
+ */
+export interface ChatRequestMessage extends BaseMessage {
+  type: 'CHAT_REQUEST'
+  messages: Array<{
+    role: string
+    content: string
+  }>
+}
+
+/**
+ * 对话响应消息
+ */
+export interface ChatResponseMessage extends BaseMessage {
+  type: 'CHAT_RESPONSE'
+  data: ReadableStream | any
+  error?: string
+}
+
+/**
  * 消息联合类型
  * @type {Message}
  */
@@ -83,3 +105,5 @@ export type Message =
   | ParsedContentMessage
   | CheckLLMConfigMessage
   | CheckLLMConfigResponse
+  | ChatRequestMessage
+  | ChatResponseMessage

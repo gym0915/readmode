@@ -35,4 +35,32 @@ export interface ILLMError {
   message: string
   type: string
   param?: string
+}
+
+/**
+ * 对话请求接口
+ */
+export interface IChatRequest {
+  messages: Array<{
+    role: string
+    content: string
+  }>
+}
+
+/**
+ * 对话响应接口
+ */
+export interface IChatResponse {
+  id: string
+  object: string
+  created: number
+  model: string
+  choices: Array<{
+    index: number
+    message: {
+      role: string
+      content: string
+    }
+    finish_reason: string | null
+  }>
 } 

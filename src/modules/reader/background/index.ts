@@ -4,7 +4,8 @@ import { ContentScriptManagerService } from "../services/content-script-manager.
 import { ArticleCacheService } from "../services/article-cache.service"
 import { messageService } from '~/core/services/message.service'
 import { llmConfigService } from '~/core/services/llm-config.service'
-import type { Message } from '~/shared/types/message.types'
+import type { Message, ChatRequestMessage } from '~/shared/types/message.types'
+import { LLMService } from '~/modules/llm'
 
 const logger = createLogger("background")
 const iconManager = new IconManagerService()
@@ -128,6 +129,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ type: 'CHECK_LLM_CONFIG', isConfigured: false })
       })
     return true // 表示会异步发送响应
+  } else if (message.type === 'CHAT_REQUEST') {
+    handleChatRequest(message)
+      .then(sendResponse)
+      .catch(error => {
+        logger.error('处理CHAT_REQUEST消息失败:', error)
+        sendResponse({ 
+          type: 'CHAT_RESPONSE', 
+          error: error instanceof Error ? error.message : '对话请求失败' 
+        })
+      })
+    return true // 表示会异步发送响应
   }
   return true
 })
@@ -141,6 +153,40 @@ async function handleCheckLLMConfig(): Promise<Message> {
   return {
     type: 'CHECK_LLM_CONFIG_RESPONSE',
     ...result
+  }
+}
+
+/**
+ * 处理对话请求
+ */
+async function handleChatRequest(message: ChatRequestMessage): Promise<Message> {
+  logger.info('开始处理对话请求')
+  
+  try {
+    // 1. 获取LLM配置
+    const { isConfigured, config } = await llmConfigService.checkConfig()
+    if (!isConfigured || !config) {
+      throw new Error('LLM配置未完成')
+    }
+
+    // 2. 创建LLM服务实例
+    const llmService = new LLMService({
+      apiKey: config.apiKey!,
+      baseUrl: config.baseUrl!,
+      model: config.selectedModel,
+      streaming: true // 可以从配置中获取
+    })
+
+    // 3. 发送对话请求
+    const response = await llmService.chat(message.messages)
+
+    return {
+      type: 'CHAT_RESPONSE',
+      data: response
+    }
+  } catch (error) {
+    logger.error('对话请求失败:', error)
+    throw error
   }
 }
 

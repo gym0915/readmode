@@ -1,6 +1,12 @@
 import { Logger } from '../utils/logger'
-import type { ILLMConfig, IModelsResponse, ILLMError } from '../types'
-import { API_ENDPOINTS, HTTP_HEADERS, CONTENT_TYPES, ERROR_TYPES } from '../constants'
+import type { 
+  ILLMConfig, 
+  IModelsResponse, 
+  ILLMError,
+  IChatRequest,
+  IChatResponse 
+} from '../types'
+import { API_ENDPOINTS, HTTP_HEADERS, CONTENT_TYPES } from '../constants'
 
 /**
  * LLM 服务类
@@ -187,6 +193,60 @@ export class LLMService {
       this.logger.error('配置更新失败，已恢复原配置', { 
         error: error instanceof Error ? error.message : error 
       })
+      throw error
+    }
+  }
+
+  /**
+   * 与模型对话
+   * @param messages - 对话消息数组
+   * @returns 模型响应
+   */
+  public async chat(messages: Array<{ role: string; content: string }>): Promise<ReadableStream | IChatResponse> {
+    try {
+      const url = `${this.config.baseUrl}/chat/completions`
+      
+      // 在消息末尾添加语言指令
+      const messagesWithLanguage = [...messages]
+      if (this.config.language) {
+        messagesWithLanguage.push({
+          role: 'user',
+          content: `Please read the news articles, extract key information, including the main body of the event, the main time and place of the event, the core content of the event, and its significant impact or consequences, and then integrate this information into a concise, coherent and complete summary of about 500 words, which requires an accurate summary of the main points of the news and highlights the key information. Please respond in ${this.config.language}`
+        })
+      }
+      
+      this.logger.debug('开始对话请求', { url, messages: messagesWithLanguage })
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          model: this.config.model,
+          messages: messagesWithLanguage,
+          stream: this.config.streaming
+        })
+      })
+
+      if (!response.ok) {
+        const error = (await response.json()) as ILLMError
+        this.logger.error('对话请求失败', { 
+          status: response.status,
+          statusText: response.statusText,
+          error
+        })
+        throw new Error(error.message || '对话请求失败')
+      }
+
+      if (this.config.streaming) {
+        this.logger.debug('返回流式响应')
+        return response.body!
+      } else {
+        const data = await response.json() as IChatResponse
+        this.logger.debug('对话完成', { response: data })
+        return data
+      }
+    } catch (error) {
+      this.logger.error('对话过程发生错误', { error })
       throw error
     }
   }
