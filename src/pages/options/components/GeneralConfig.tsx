@@ -1,10 +1,77 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
+import { createLogger, ELogLevel } from "~/shared/utils/logger"
+import { IndexedDBManager } from "~/shared/utils/indexed-db"
+import { MessageHandler } from "~/shared/utils/message"
+
+const logger = createLogger("GeneralConfig", ELogLevel.DEBUG)
+const messageHandler = MessageHandler.getInstance()
+const GENERAL_CONFIG_KEY = "generalConfig"
+const STORE_NAME = "generalConfig"
+
+interface GeneralConfig {
+  theme: 'light' | 'dark'
+  autoSummary: boolean
+  language: 'zh' | 'en'
+}
 
 export const GeneralConfig: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [autoSummary, setAutoSummary] = useState(false)
-  const [selectedTheme, setSelectedTheme] = useState('light')
+  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>('light')
   const [selectedLanguage, setSelectedLanguage] = useState('zh')
+
+  // 加载保存的配置
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const indexedDB = IndexedDBManager.getInstance()
+        await indexedDB.initialize()
+        const savedConfig = await indexedDB.getData(GENERAL_CONFIG_KEY, STORE_NAME) as GeneralConfig | undefined
+        
+        if (savedConfig) {
+          setSelectedTheme(savedConfig.theme)
+          setAutoSummary(savedConfig.autoSummary)
+          setSelectedLanguage(savedConfig.language)
+          logger.debug('已加载通用配置', savedConfig)
+        }
+      } catch (error) {
+        logger.error('加载通用配置失败:', error)
+      }
+    }
+
+    void loadConfig()
+  }, [])
+
+  // 保存配置
+  const handleSave = async () => {
+    logger.debug('开始保存配置...')
+    setIsSaving(true)
+    try {
+      const config: GeneralConfig = {
+        theme: selectedTheme,
+        autoSummary,
+        language: selectedLanguage as 'zh' | 'en'
+      }
+      logger.debug('准备保存的配置:', config)
+
+      const indexedDB = IndexedDBManager.getInstance()
+      logger.debug('获取 IndexedDB 实例')
+      
+      await indexedDB.initialize()
+      logger.debug('IndexedDB 初始化完成')
+      
+      await indexedDB.saveData(GENERAL_CONFIG_KEY, config, STORE_NAME)
+      logger.debug('数据已保存到 IndexedDB')
+
+      messageHandler.success('设置已保存')
+    } catch (error) {
+      logger.error('保存通用配置失败:', error)
+      messageHandler.error('保存失败')
+    } finally {
+      setIsSaving(false)
+      logger.debug('保存流程结束')
+    }
+  }
 
   return (
     <div className="p-8 space-y-6">
@@ -14,7 +81,7 @@ export const GeneralConfig: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700">
             主题设置
           </label>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => setSelectedTheme('light')}
               className={`flex items-center justify-center px-4 py-3 border rounded-lg transition-colors ${
@@ -34,16 +101,6 @@ export const GeneralConfig: React.FC = () => {
               }`}
             >
               <span className="text-sm font-medium">夜间模式</span>
-            </button>
-            <button
-              onClick={() => setSelectedTheme('system')}
-              className={`flex items-center justify-center px-4 py-3 border rounded-lg transition-colors ${
-                selectedTheme === 'system'
-                  ? 'border-blue-500 bg-blue-50 text-blue-600'
-                  : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
-              }`}
-            >
-              <span className="text-sm font-medium">跟随系统</span>
             </button>
           </div>
         </div>
@@ -109,10 +166,7 @@ export const GeneralConfig: React.FC = () => {
             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
             transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]`}
           disabled={isSaving}
-          onClick={() => {
-            setIsSaving(true)
-            setTimeout(() => setIsSaving(false), 1500)
-          }}
+          onClick={() => void handleSave()}
         >
           {isSaving ? (
             <div className="flex items-center justify-center space-x-2">
