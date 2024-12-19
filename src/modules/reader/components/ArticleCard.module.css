@@ -19,7 +19,7 @@
 
 .card {
   width: 100% !important;
-  max-width: 65ch !important;
+  max-width: 100ch !important;
   margin: 0 auto !important;
   background: transparent !important;
   border-radius: 0 !important;
