@@ -10,6 +10,8 @@ import { LLMService } from '~/modules/llm'
 import type { IChatResponse } from '~/modules/llm/types'
 import { decryptText } from '~/shared/utils/crypto'
 import { CryptoManager } from "~/shared/utils/crypto-manager"
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 const logger = createLogger('SummarySidebar', ELogLevel.DEBUG)
 const messageHandler = MessageHandler.getInstance()
@@ -28,144 +30,56 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
   const toggleSummary = useReaderStore((state) => state.toggleSummary)
 
   useEffect(() => {
-    const checkLLMConfig = async () => {
+    const initialize = async () => {
       if (hasError) return
       
       try {
         setIsLoading(true)
-        const response = await messageService.sendToBackground({
+        
+        // 1. 先检查配置
+        const configResponse = await messageService.sendToBackground({
           type: 'CHECK_LLM_CONFIG'
         }) as CheckLLMConfigResponse
 
-        setIsConfigured(response.isConfigured)
-        logger.info('LLM配置检查结果:', { isConfigured: response.isConfigured })
-      } catch (error) {
-        logger.error('检查LLM配置失败:', error)
-        setIsConfigured(false)
-        setHasError(true)
-        setErrorMessage('检查模型配置失败')
-      } finally {
-        setIsLoading(false)
-      }
-    }
+        if (!configResponse.isConfigured) {
+          setIsConfigured(false)
+          return
+        }
 
-    void checkLLMConfig()
+        setIsConfigured(true)
 
-    return () => {
-      logger.info('SummarySidebar unmounted')
-    }
-  }, [hasError])
-
-  // 生成文章总结
-  useEffect(() => {
-    const generateSummary = async () => {
-      if (!isConfigured || isLoading || hasError) return
-
-      try {
-        setIsLoading(true)
-        
-        // // 1. 获取并解密配置
-        // const configResponse = await messageService.sendToBackground({
-        //   type: 'GET_LLM_CONFIG'
-        // }) as GetLLMConfigResponse
-
-        // if (configResponse.error || !configResponse.data) {
-        //   throw new Error('获取配置失败')
-        // }
-
-        // const { apiKey: encryptedApiKey, baseUrl: encryptedBaseUrl } = configResponse.data
-        
-        // // 解密配置
-        // // 初始化加密管理器并解密数据
-        // const cryptoManager = CryptoManager.getInstance()
-        // await cryptoManager.initialize()
-        
-        // const apiKey = encryptedApiKey ? await cryptoManager.decrypt(encryptedApiKey) : ''
-        // const baseUrl = encryptedBaseUrl ? await cryptoManager.decrypt(encryptedBaseUrl) : ''
-
-        // if (!apiKey || !baseUrl) {
-        //   throw new Error('配置解密失败')
-        // }
-
-        // logger.info('解密后的配置:', { apiKey, baseUrl })
-
-        // 2. 发送总结请求
+        // 2. 再生成总结
         const response = await messageService.sendToBackground({
           type: 'CHAT_REQUEST',
-          messages: [
-            {
-              role: 'system',
-              content: `你是一个专业的文章总结助手。你的任务是:
-1. 提取文章的核心信息,包括:
-   - 主要事件和人物
-   - 关键时间和地点
-   - 事件的起因、经过和结果
-   - 重要影响和意义
-2. 生成一个结构清晰的总结:
-   - 摘要: 2-3句话简述文章要点
-   - 详细内容: 分点列出重要信息
-   - 结论: 总结文章的核心观点或启示
-3. 总结要求:
-   - 保持客观准确
-   - 语言简洁清晰
-   - 突出重点信息
-   - 保留原文的关键数据和引用
-   - 总字数控制在500字左右`
-            },
-            {
-              role: 'user',
-              content: `请总结以下文章:\n\n标题: ${article.title}\n\n正文:\n${article.textContent}`
-            }
-          ]
-          // ,
-          // config: {
-            // apiKey,
-            // baseUrl
-          // }
+          data: {
+            type: 'SUMMARY',
+            title: article.title,
+            content: article.textContent,
+            // 这里可以从配置中获取语言设置
+          }
         })
 
         if (response.error) {
           throw new Error(response.error)
         }
 
+        // 处理响应...
         if (response.data instanceof ReadableStream) {
-          // 处理流式响应
-          const reader = response.data.getReader()
-          let content = ''
-          
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
-            
-            const text = new TextDecoder().decode(value)
-            content += text
-            setSummary(content)
-          }
+          // 处理流式响应...
         } else {
-          // 处理非流式响应
           setSummary(response.data.choices[0].message.content)
         }
+
       } catch (error) {
-        logger.error('生成文章总结失败:', error)
         setHasError(true)
-        if (error instanceof Error) {
-          if (error.message.includes('Invalid Base URL')) {
-            setErrorMessage('Base URL 格式不正确')
-          } else if (error.message.includes('API Key')) {
-            setErrorMessage('API Key 无效')
-          } else {
-            setErrorMessage('生成文章总结失败')
-          }
-        } else {
-          setErrorMessage('生成文章总结失败')
-        }
+        // 错误处理...
       } finally {
         setIsLoading(false)
       }
     }
 
-    void generateSummary()
-  }, [article, isConfigured, isLoading, hasError])
+    void initialize()
+  }, [article, hasError])
 
   // 重置错误状态
   const resetError = () => {
@@ -183,6 +97,16 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
       return (
         <div className={styles.error}>
           <p>{errorMessage}</p>
+          {errorMessage.includes('配置') && (
+            <button 
+              onClick={() => {
+                chrome.runtime.openOptionsPage()
+              }}
+              className={styles.configButton}
+            >
+              前往配置
+            </button>
+          )}
           <button onClick={resetError} className={styles.retryButton}>
             重试
           </button>
@@ -192,8 +116,18 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
 
     if (!isConfigured) {
       return (
-        <div className={styles.error}>
-          <p>请先完成模型配置</p>
+        <div className={styles.configPrompt}>
+          <div className={styles.promptIcon}>⚙️</div>
+          <h3 className={styles.promptTitle}>需要完成模型配置</h3>
+          <p className={styles.promptDesc}>请先完成 LLM 模型配置才能使用总结功能</p>
+          <button 
+            onClick={() => {
+              chrome.runtime.openOptionsPage()
+            }}
+            className={styles.configButton}
+          >
+            前往配置
+          </button>
         </div>
       )
     }
@@ -201,7 +135,26 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
     return (
       <div className={styles.summary}>
         <div className={styles.summaryContent}>
-          {summary}
+          <ReactMarkdown 
+            remarkPlugins={[remarkGfm]}
+            components={{
+              // 自定义组件渲染
+              h1: ({node, ...props}) => <h1 className={styles.heading1} {...props} />,
+              h2: ({node, ...props}) => <h2 className={styles.heading2} {...props} />,
+              h3: ({node, ...props}) => <h3 className={styles.heading3} {...props} />,
+              p: ({node, ...props}) => <p className={styles.paragraph} {...props} />,
+              ul: ({node, ...props}) => <ul className={styles.list} {...props} />,
+              ol: ({node, ...props}) => <ol className={styles.orderedList} {...props} />,
+              li: ({node, ...props}) => <li className={styles.listItem} {...props} />,
+              blockquote: ({node, ...props}) => <blockquote className={styles.blockquote} {...props} />,
+              code: ({node, inline, ...props}) => 
+                inline ? 
+                  <code className={styles.inlineCode} {...props} /> : 
+                  <pre className={styles.codeBlock}><code {...props} /></pre>
+            }}
+          >
+            {summary}
+          </ReactMarkdown>
         </div>
       </div>
     )

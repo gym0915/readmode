@@ -125,7 +125,6 @@
   font-size: 1rem;
   line-height: 1.75;
   color: #374151;
-  white-space: pre-wrap;
 }
 
 .summaryContent p {
@@ -162,4 +161,75 @@
 .retryButton:focus {
   outline: none;
   box-shadow: 0 0 0 2px #fca5a5;
+}
+
+/* Markdown 样式 */
+.paragraph {
+  margin-bottom: 1.25rem;
+  line-height: 1.75;
+}
+
+.heading1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem;
+  color: #111827;
+}
+
+.heading2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.75rem 0 0.875rem;
+  color: #1f2937;
+}
+
+.heading3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem;
+  color: #374151;
+}
+
+.list {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+
+.orderedList {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+  list-style-type: decimal;
+}
+
+.listItem {
+  margin-bottom: 0.5rem;
+}
+
+.inlineCode {
+  padding: 0.2em 0.4em;
+  background-color: #f3f4f6;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875em;
+}
+
+.codeBlock {
+  display: block;
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875em;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.blockquote {
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+  border-left: 4px solid #e5e7eb;
+  color: #4b5563;
+  font-style: italic;
 } 

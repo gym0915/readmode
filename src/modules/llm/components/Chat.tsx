@@ -20,7 +20,11 @@ export const Chat: React.FC = () => {
     try {
       const response = await messageService.sendToBackground({
         type: 'CHAT_REQUEST',
-        messages: newMessages
+        data: {
+          type: 'CHAT',
+          content: inputValue,
+          messages: newMessages
+        }
       })
 
       if (response.error) {

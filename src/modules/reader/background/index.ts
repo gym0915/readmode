@@ -179,77 +179,82 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
     // 1. 验证LLM配置
     const { isConfigured, config } = await llmConfigService.checkConfig()
     if (!isConfigured || !config) {
-      throw new Error('LLM配置未完成')
+      throw new Error('请先完成模型配置')
     }
 
-     // 2. 获取并解密配置
-     const configResponse = await messageService.sendToBackground({
-      type: 'GET_LLM_CONFIG'
-    }) as GetLLMConfigResponse
+    // 2. 获取所有配置
+    const allConfig = await llmConfigService.getAllConfig()
+    logger.info('获取到的配置:', allConfig)
 
-    if (configResponse.error || !configResponse.data) {
-      throw new Error('获取配置失败')
-    }
-
-    const { apiKey: encryptedApiKey, baseUrl: encryptedBaseUrl } = configResponse.data
+    // 3. 根据请求类型处理消息
+    let processedMessages = []
     
-    // 解密配置
-    // 初始化加密管理器并解密数据
-    const cryptoManager = CryptoManager.getInstance()
-    await cryptoManager.initialize()
-    
-    const apiKey = encryptedApiKey ? await cryptoManager.decrypt(encryptedApiKey) : ''
-    const baseUrl = encryptedBaseUrl ? await cryptoManager.decrypt(encryptedBaseUrl) : ''
-
-    if (!apiKey || !baseUrl) {
-      throw new Error('配置解密失败')
+    if (message.data.type === 'SUMMARY') {
+      const language = allConfig.language === 'zh' ? '中文' : '英文'
+      
+      processedMessages = [
+        {
+          role: 'system',
+          content: `你是一个专业的文章总结助手。你的任务是:
+1. 提取文章的核心信息,包括:
+   - 主要事件和人物
+   - 关键时间和地点
+   - 事件的起因、经过和结果
+   - 重要影响和意义
+2. 生成一个结构清晰的总结:
+   - 摘要: 2-3句话简述文章要点
+   - 详细内容: 分点列出重要信息
+   - 结论: 总结文章的核心观点或启示
+3. 总结要求:
+   - 保持客观准确
+   - 语言简洁清晰
+   - 突出重点信息
+   - 保留原文的关键数据和引用
+   - 总字数控制在500字左右`
+        },
+        {
+          role: 'user',
+          content: `请用${language}总结以下文章:\n\n标题: ${message.data.title}\n\n正文:\n${message.data.content}`
+        }
+      ]
+    } else if (message.data.type === 'CHAT') {
+      // 普通对话请求
+      processedMessages = message.data.messages || []
     }
 
-    logger.info('解密后的配置:', { apiKey, baseUrl })
-
-    // 打印解密前的配置
-    logger.debug('解密前的配置:', {
-      apiKey: apiKey,
-      baseUrl: baseUrl,
-      model: config.selectedModel
-    })
-
-    // 2. 使用传入的解密后的配置创建LLM服务实例
+    // 4. 创建LLM服务实例并发送请求
     const llmService = new LLMService({
-      apiKey: apiKey,
-      baseUrl: baseUrl,
-      model: config.selectedModel,
-      streaming: true
+      apiKey: allConfig.apiKey,
+      baseUrl: allConfig.baseUrl,
+      model: allConfig.selectedModel,
+      language: allConfig.language,
+      streaming: allConfig.streaming
     })
 
     // 打印完整的请求参数
     logger.debug('LLM请求参数:', {
-      apiKey: `${message.config.apiKey.substring(0, 4)}...${message.config.apiKey.slice(-4)}`, // 部分隐藏
-      baseUrl: message.config.baseUrl,
+      apiKey: `${allConfig.apiKey.substring(0, 4)}...${allConfig.apiKey.slice(-4)}`, // 部分隐藏
+      baseUrl: allConfig.baseUrl,
       model: config.selectedModel,
-      streaming: true,
-      messagesCount: message.messages.length,
-      firstMessageRole: message.messages[0]?.role,
-      firstMessagePreview: message.messages[0]?.content.substring(0, 50) + '...'
+      streaming: allConfig.streaming,
+      messagesCount: processedMessages.length,
+      firstMessageRole: processedMessages[0]?.role,
+      firstMessagePreview: processedMessages[0]?.content.substring(0, 50) + '...'
     })
 
-    // 3. 发送对话请求
-    const response = await llmService.chat(message.messages)
+    // 5. 发送对话请求
+    const response = await llmService.chat(processedMessages)
 
     return {
       type: 'CHAT_RESPONSE',
       data: response
     }
   } catch (error) {
-    logger.error('对话请求失败:', error)
-    // 添加更详细的错误信息
-    if (error instanceof Error) {
-      logger.error('错误详情:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      })
-    }
+    logger.error('对话请求失败:', {
+      error,
+      errorName: error instanceof Error ? error.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error)
+    })
     throw error
   }
 }

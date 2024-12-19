@@ -209,12 +209,6 @@ export class LLMService {
       
       // 在消息末尾添加语言指令
       const messagesWithLanguage = [...messages]
-      if (this.config.language) {
-        messagesWithLanguage.push({
-          role: 'user',
-          content: `Please read the news articles, extract key information, including the main body of the event, the main time and place of the event, the core content of the event, and its significant impact or consequences, and then integrate this information into a concise, coherent and complete summary of about 500 words, which requires an accurate summary of the main points of the news and highlights the key information. Please respond in ${this.config.language}`
-        })
-      }
       
       this.logger.debug('开始对话请求', { url, messages: messagesWithLanguage })
 

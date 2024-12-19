@@ -82,14 +82,16 @@ export interface CheckLLMConfigResponse extends BaseMessage {
  */
 export interface ChatRequestMessage extends BaseMessage {
   type: 'CHAT_REQUEST'
-  messages: Array<{
-    role: string
+  data: {
+    type: 'SUMMARY' | 'CHAT'
+    title?: string
     content: string
-  }>
-  // config: {
-  //   apiKey: string
-  //   baseUrl: string
-  // }
+    language?: 'zh' | 'en'
+    messages?: Array<{
+      role: string
+      content: string
+    }>
+  }
 }
 
 /**
