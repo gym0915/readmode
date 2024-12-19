@@ -40,7 +40,8 @@ export class LLMService {
       baseUrl: config.baseUrl,
       model: config.model,
       language: config.language,
-      streaming: config.streaming
+      streaming: config.streaming,
+      apiKey: config.apiKey
     })
     this.validateConfig()
   }

@@ -10,6 +10,8 @@ export type MessageType =
   | 'CHECK_LLM_CONFIG_RESPONSE'
   | 'CHAT_REQUEST'
   | 'CHAT_RESPONSE'
+  | 'GET_LLM_CONFIG'
+  | 'GET_LLM_CONFIG_RESPONSE'
 
 /**
  * 基础消息接口
@@ -84,6 +86,10 @@ export interface ChatRequestMessage extends BaseMessage {
     role: string
     content: string
   }>
+  // config: {
+  //   apiKey: string
+  //   baseUrl: string
+  // }
 }
 
 /**
@@ -91,7 +97,39 @@ export interface ChatRequestMessage extends BaseMessage {
  */
 export interface ChatResponseMessage extends BaseMessage {
   type: 'CHAT_RESPONSE'
-  data: ReadableStream | any
+  data: ReadableStream | {
+    id: string
+    object: string
+    created: number
+    model: string
+    choices: Array<{
+      index: number
+      message: {
+        role: string
+        content: string
+      }
+      finish_reason: string | null
+    }>
+  }
+  error?: string
+}
+
+/**
+ * 获取LLM配置请求消息
+ */
+export interface GetLLMConfigMessage extends BaseMessage {
+  type: 'GET_LLM_CONFIG'
+}
+
+/**
+ * 获取LLM配置响应消息
+ */
+export interface GetLLMConfigResponse extends BaseMessage {
+  type: 'GET_LLM_CONFIG_RESPONSE'
+  data?: {
+    apiKey: string
+    baseUrl: string
+  }
   error?: string
 }
 
@@ -107,3 +145,5 @@ export type Message =
   | CheckLLMConfigResponse
   | ChatRequestMessage
   | ChatResponseMessage
+  | GetLLMConfigMessage
+  | GetLLMConfigResponse

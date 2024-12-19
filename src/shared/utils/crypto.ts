@@ -32,7 +32,7 @@ export const generateUserSpecificKey = async (): Promise<string> => {
     return hashBase64
   } catch (error) {
     logger.error('生成密钥失败', { error })
-    // 如果获取平台信息失败，使用备用方案
+    // 如果获取平台信息失败，使用备���方案
     const fallbackInfo = {
       timestamp: Date.now(),
       random: Math.random().toString(36).substring(2),
@@ -92,4 +92,21 @@ export const validateKeyStrength = (key: string): boolean => {
   }
 
   return true;
-}; 
+};
+
+/**
+ * 解密文本
+ * @param encryptedText 加密的文本
+ * @returns 解密后的文本
+ */
+export async function decryptText(encryptedText?: string): Promise<string> {
+  if (!encryptedText) return ''
+  
+  try {
+    // TODO: 实现实际的解密逻辑
+    return encryptedText
+  } catch (error) {
+    console.error('解密失败:', error)
+    return ''
+  }
+}

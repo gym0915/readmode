@@ -20,6 +20,7 @@ interface IModelData {
   selectedModel: string
   modelList: IModelInfo[]
   streaming: boolean
+  language: 'zh' | 'en'
 }
 
 // 创建日志记录器和消息处理器
@@ -36,6 +37,7 @@ export const LLMConfig: React.FC = () => {
   const [models, setModels] = useState<IModelInfo[]>([])
   const [showApiKey, setShowApiKey] = useState(false)
   const [streaming, setStreaming] = useState(false)
+  const [selectedLanguage, setSelectedLanguage] = useState<'zh' | 'en'>('zh')
 
   /**
    * 加载已保存的配置
@@ -53,10 +55,12 @@ export const LLMConfig: React.FC = () => {
         setModels(modelData.modelList)
         setSelectedModel(modelData.selectedModel)
         setStreaming(modelData.streaming ?? false)
+        setSelectedLanguage(modelData.language ?? 'zh')
         logger.debug('已从 IndexedDB 加载模型数据', { 
           modelCount: modelData.modelList.length,
           selectedModel: modelData.selectedModel,
-          streaming: modelData.streaming 
+          streaming: modelData.streaming,
+          language: modelData.language
         })
       }
 
@@ -144,7 +148,8 @@ export const LLMConfig: React.FC = () => {
       await indexedDB.saveData(MODEL_DATA_KEY, {
         selectedModel,
         modelList: models,
-        streaming
+        streaming,
+        language: selectedLanguage
       })
       logger.debug('模型数据已保存到 IndexedDB')
 
@@ -174,7 +179,8 @@ export const LLMConfig: React.FC = () => {
           baseUrl,
           model: selectedModel,
           modelList: models,
-          streaming
+          streaming,
+          language: selectedLanguage
         }
       })
 
@@ -297,6 +303,33 @@ export const LLMConfig: React.FC = () => {
                 }`}
               />
             </button>
+          </div>
+        </div>
+
+        {/* 语言设置 */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            返回语言
+          </label>
+          <div className="space-y-2">
+            <label className="flex items-center space-x-3">
+              <input
+                type="radio"
+                checked={selectedLanguage === 'zh'}
+                onChange={() => setSelectedLanguage('zh')}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">中文</span>
+            </label>
+            <label className="flex items-center space-x-3">
+              <input
+                type="radio"
+                checked={selectedLanguage === 'en'}
+                onChange={() => setSelectedLanguage('en')}
+                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">English</span>
+            </label>
           </div>
         </div>
 

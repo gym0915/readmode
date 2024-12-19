@@ -4,8 +4,10 @@ import { ContentScriptManagerService } from "../services/content-script-manager.
 import { ArticleCacheService } from "../services/article-cache.service"
 import { messageService } from '~/core/services/message.service'
 import { llmConfigService } from '~/core/services/llm-config.service'
-import type { Message, ChatRequestMessage } from '~/shared/types/message.types'
+import type { Message, ChatRequestMessage, GetLLMConfigResponse, ChatResponseMessage } from '~/shared/types/message.types'
 import { LLMService } from '~/modules/llm'
+import { decryptText } from '~/shared/utils/crypto'
+import { CryptoManager } from "~/shared/utils/crypto-manager"
 
 const logger = createLogger("background")
 const iconManager = new IconManagerService()
@@ -140,6 +142,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         })
       })
     return true // 表示会异步发送响应
+  } else if (message.type === 'GET_LLM_CONFIG') {
+    handleGetLLMConfig()
+      .then(sendResponse)
+      .catch(error => {
+        logger.error('处理GET_LLM_CONFIG消息失败:', error)
+        sendResponse({ 
+          type: 'GET_LLM_CONFIG_RESPONSE',
+          error: error instanceof Error ? error.message : '获取配置失败'
+        })
+      })
+    return true
   }
   return true
 })
@@ -159,22 +172,65 @@ async function handleCheckLLMConfig(): Promise<Message> {
 /**
  * 处理对话请求
  */
-async function handleChatRequest(message: ChatRequestMessage): Promise<Message> {
+async function handleChatRequest(message: ChatRequestMessage): Promise<ChatResponseMessage> {
   logger.info('开始处理对话请求')
   
   try {
-    // 1. 获取LLM配置
+    // 1. 验证LLM配置
     const { isConfigured, config } = await llmConfigService.checkConfig()
     if (!isConfigured || !config) {
       throw new Error('LLM配置未完成')
     }
 
-    // 2. 创建LLM服务实例
+     // 2. 获取并解密配置
+     const configResponse = await messageService.sendToBackground({
+      type: 'GET_LLM_CONFIG'
+    }) as GetLLMConfigResponse
+
+    if (configResponse.error || !configResponse.data) {
+      throw new Error('获取配置失败')
+    }
+
+    const { apiKey: encryptedApiKey, baseUrl: encryptedBaseUrl } = configResponse.data
+    
+    // 解密配置
+    // 初始化加密管理器并解密数据
+    const cryptoManager = CryptoManager.getInstance()
+    await cryptoManager.initialize()
+    
+    const apiKey = encryptedApiKey ? await cryptoManager.decrypt(encryptedApiKey) : ''
+    const baseUrl = encryptedBaseUrl ? await cryptoManager.decrypt(encryptedBaseUrl) : ''
+
+    if (!apiKey || !baseUrl) {
+      throw new Error('配置解密失败')
+    }
+
+    logger.info('解密后的配置:', { apiKey, baseUrl })
+
+    // 打印解密前的配置
+    logger.debug('解密前的配置:', {
+      apiKey: apiKey,
+      baseUrl: baseUrl,
+      model: config.selectedModel
+    })
+
+    // 2. 使用传入的解密后的配置创建LLM服务实例
     const llmService = new LLMService({
-      apiKey: config.apiKey!,
-      baseUrl: config.baseUrl!,
+      apiKey: apiKey,
+      baseUrl: baseUrl,
       model: config.selectedModel,
-      streaming: true // 可以从配置中获取
+      streaming: true
+    })
+
+    // 打印完整的请求参数
+    logger.debug('LLM请求参数:', {
+      apiKey: `${message.config.apiKey.substring(0, 4)}...${message.config.apiKey.slice(-4)}`, // 部分隐藏
+      baseUrl: message.config.baseUrl,
+      model: config.selectedModel,
+      streaming: true,
+      messagesCount: message.messages.length,
+      firstMessageRole: message.messages[0]?.role,
+      firstMessagePreview: message.messages[0]?.content.substring(0, 50) + '...'
     })
 
     // 3. 发送对话请求
@@ -186,6 +242,45 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<Message> 
     }
   } catch (error) {
     logger.error('对话请求失败:', error)
+    // 添加更详细的错误信息
+    if (error instanceof Error) {
+      logger.error('错误详情:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      })
+    }
+    throw error
+  }
+}
+
+/**
+ * 处理获取LLM配置请求
+ */
+async function handleGetLLMConfig(): Promise<GetLLMConfigResponse> {
+  try {
+    const { config } = await llmConfigService.checkConfig()
+    if (!config) {
+      throw new Error('未找到LLM配置')
+    }
+
+    // 打印配置信息
+    logger.debug('获取到的LLM配置:', {
+      hasApiKey: !!config.apiKey,
+      hasBaseUrl: !!config.baseUrl,
+      apiKeyPreview: config.apiKey ? `${config.apiKey.substring(0, 4)}...${config.apiKey.slice(-4)}` : 'undefined',
+      baseUrl: config.baseUrl
+    })
+
+    return {
+      type: 'GET_LLM_CONFIG_RESPONSE',
+      data: {
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl
+      }
+    }
+  } catch (error) {
+    logger.error('获取LLM配置失败:', error)
     throw error
   }
 }
