@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import styles from '../styles/ToolBar.module.css'
 import { SummaryButton } from './SummaryButton'
+import { AnimatePresence, motion } from 'framer-motion'
 
 /**
  * ToolBar组件的属性接口定义
@@ -32,19 +33,8 @@ export const ToolBar: React.FC<ToolBarProps> = ({
   onVisibilityChange,
   onSummaryClick
 }) => {
-  const toolbarRef = useRef<HTMLDivElement>(null)
-
   return (
-    <div 
-      ref={toolbarRef} 
-      className={styles.toolbar}
-      style={{
-        visibility: visible ? 'visible' : 'hidden',
-        opacity: visible ? '1' : '0',
-        pointerEvents: visible ? 'auto' : 'none',
-        transition: 'opacity 0.3s ease-in-out'
-      }}
-    >
+    <div className={`${styles.toolbar} ${!visible ? styles.hidden : ''}`}>
       <div className={styles.toolbarContent}>
         <SummaryButton 
           onVisibilityChange={onVisibilityChange}

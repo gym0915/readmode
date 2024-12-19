@@ -22,15 +22,17 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ article }) => 
   const handleSummaryClose = useCallback(() => {
     setIsSliding(true)
     toggleSummary()
-    setToolbarVisible(true)
     setTimeout(() => {
       setIsSliding(false)
-    }, 0)
+      setToolbarVisible(true)
+    }, 300)
   }, [toggleSummary])
 
   const handleSummaryClick = useCallback(() => {
     setToolbarVisible(false)
-    toggleSummary()
+    setTimeout(() => {
+      toggleSummary()
+    }, 300)
   }, [toggleSummary])
 
   useEffect(() => {

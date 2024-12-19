@@ -10,6 +10,7 @@
   box-sizing: border-box !important;
   z-index: 2147483647 !important;
   overflow: hidden !important;
+  
 }
 
 .reader_content_wrapper {
@@ -48,6 +49,7 @@
   transform: translateX(0) !important;
   will-change: transform !important;
   backface-visibility: hidden !important;
+  transform-style: preserve-3d !important;
   -webkit-backface-visibility: hidden !important;
   -webkit-transform-style: preserve-3d !important;
 }
