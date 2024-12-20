@@ -254,11 +254,11 @@
   }
 }
 
-.orderedListItem {
+.orderedList > .listItem {
   /* 有序列表项的样式 */
 }
 
-.unorderedListItem {
+.list > .listItem {
   /* 无序列表项的样式 */
 }
  

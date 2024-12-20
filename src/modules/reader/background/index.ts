@@ -218,29 +218,25 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
     // 打印请求参数（排除敏感信息）
     logRequestParameters(allConfig, config, processedMessages)
 
-    // 5. 根据streaming配置选择对话方式
-    let responseData: any
-    
-    if (allConfig.streaming) {
-      // 使用传入的 portName 找到对应的连接
-      const port = message.data.portName ? portMap.get(message.data.portName) : null;
-      
-      if (!port) {
-        logger.error('Stream port not found:', {
-          portName: message.data.portName,
-          availablePorts: Array.from(portMap.keys())
-        });
-        throw new Error('Stream port not found');
-      }
-
-      let isPortConnected = true;
-      
-      port.onDisconnect.addListener(() => {
-        isPortConnected = false;
-        logger.debug('Stream port disconnected');
-        portMap.delete(message.data.portName!);
+    // 获取端口连接
+    const port = message.data.portName ? portMap.get(message.data.portName) : null;
+    if (!port) {
+      logger.error('Port not found:', {
+        portName: message.data.portName,
+        availablePorts: Array.from(portMap.keys())
       });
+      throw new Error('Port not found');
+    }
 
+    let isPortConnected = true;
+    port.onDisconnect.addListener(() => {
+      isPortConnected = false;
+      logger.debug('Port disconnected');
+      portMap.delete(message.data.portName!);
+    });
+
+    // 5. 根据streaming配置选择对话方式
+    if (allConfig.streaming) {
       try {
         await llmService.streamChat(
           processedMessages,
@@ -296,28 +292,43 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
       }
     } else {
       // 使用普通对话
-      responseData = await llmService.chat(processedMessages)
-    }
+      try {
+        const responseData = await llmService.chat(processedMessages);
+        logger.debug('普通对话响应:', responseData)
+        // 通过 port 发送响应
+        if (isPortConnected) {
+          port.postMessage({
+            type: 'CHAT_RESPONSE',
+            data: responseData,
+            error: null
+          });
+          
+          // 发送完成信号
+          port.postMessage({ type: 'STREAM_DONE' });
+        }
 
-    // 在返回响应前记录日志
-    logger.debug('准备返回响应:', {
-      isStream: allConfig.streaming,
-      messageCount: processedMessages.length,
-      responseType: responseData instanceof ReadableStream ? 'stream' : 'normal'
-    })
-
-    return {
-      type: 'CHAT_RESPONSE',
-      data: responseData,
-      error: null
+        return {
+          type: 'CHAT_RESPONSE',
+          data: responseData,
+          error: null
+        };
+      } catch (error) {
+        if (isPortConnected) {
+          port.postMessage({
+            type: 'STREAM_ERROR',
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+        throw error;
+      }
     }
   } catch (error) {
-    logger.error('对话请求处��失败:', {
+    logger.error('对话请求处理失败:', {
       error,
       type: message.data.type,
       errorType: error instanceof Error ? error.name : 'Unknown'
-    })
-    throw error
+    });
+    throw error;
   }
 }
 

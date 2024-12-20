@@ -60,26 +60,32 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
         port.onMessage.addListener((message) => {
           logger.debug('收到Port消息:', message);
           
-          try {
-            if (message.type === 'STREAM_CHUNK') {
-              accumulatedContent += message.data.content;
-              setStreamContent(accumulatedContent);
-              setSummary(accumulatedContent);
-            } else if (message.type === 'STREAM_ERROR') {
-              setHasError(true);
-              setErrorMessage(message.error);
-              port?.disconnect();
-            } else if (message.type === 'STREAM_DONE') {
-              setIsStreaming(false);
-              setSummary(accumulatedContent);
-              setIsLoading(false);
-              port?.disconnect();
+          if (message.type === 'CHAT_RESPONSE') {
+            // 处理非流式响应
+            if (message.data?.choices?.[0]?.message?.content) {
+              const content = message.data.choices[0].message.content;
+              logger.debug('收到响应内容:', { contentPreview: content.substring(0, 50) });
+              setStreamContent(content);
+              setSummary(content);
             }
-          } catch (error) {
-            logger.error('处理消息时发生错误:', error);
+          } else if (message.type === 'STREAM_CHUNK') {
+            accumulatedContent += message.data.content;
+            setStreamContent(accumulatedContent);
+          } else if (message.type === 'STREAM_ERROR') {
             setHasError(true);
-            setErrorMessage('处理响应时发生错误');
-            port?.disconnect();
+            setErrorMessage(message.error || '生成总结失败');
+            logger.error('响应错误:', message.error);
+            setIsLoading(false);
+          } else if (message.type === 'STREAM_DONE') {
+            // 对于流式响应，使用 accumulatedContent
+            if (isStreaming) {
+              setSummary(accumulatedContent);
+            }
+            setIsLoading(false);
+            logger.debug('响应完成，设置总结内容', {
+              isStreaming,
+              summaryContent: isStreaming ? accumulatedContent : summary
+            });
           }
         });
 
@@ -215,13 +221,16 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
               p: ({node, ...props}) => <p className={styles.paragraph} {...props} />,
               ul: ({node, ...props}) => <ul className={styles.list} {...props} />,
               ol: ({node, ...props}) => <ol className={styles.orderedList} {...props} />,
-              li: ({node, ordered, ...props}) => (
-                <li 
-                  className={`${styles.listItem} ${ordered ? styles.orderedListItem : styles.unorderedListItem}`}
-                  data-ordered={ordered ? "true" : "false"}
-                  {...props} 
-                />
-              ),
+              li: ({node, ordered, ...props}) => {
+                // 移除 ordered 属性，只使用它来决定类名
+                const listItemClass = ordered ? styles.orderedListItem : styles.unorderedListItem;
+                return (
+                  <li 
+                    className={`${styles.listItem} ${listItemClass}`}
+                    {...props} 
+                  />
+                );
+              },
               blockquote: ({node, ...props}) => <blockquote className={styles.blockquote} {...props} />,
               code: ({node, inline, ...props}) => 
                 inline ? 
