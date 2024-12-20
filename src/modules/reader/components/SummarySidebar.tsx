@@ -12,6 +12,7 @@ import { decryptText } from '~/shared/utils/crypto'
 import { CryptoManager } from "~/shared/utils/crypto-manager"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { MessageService } from '~/core/services/message.service'
 
 const logger = createLogger('SummarySidebar', ELogLevel.DEBUG)
 const messageHandler = MessageHandler.getInstance()
@@ -33,136 +34,127 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
 
   useEffect(() => {
     const initialize = async () => {
-      if (hasError) return
+      if (hasError) return;
+      
+      let port: chrome.runtime.Port | null = null;
       
       try {
-        setIsLoading(true)
-        setStreamContent('')
-        setSummary('')
+        setIsLoading(true);
+        setStreamContent('');
+        setSummary('');
+        
+        // 确保之前的连接已关闭
+        if (port) {
+          port.disconnect();
+        }
+
+        // 建立新连接
+        const portName = `summary-${Date.now()}`;
+        port = chrome.runtime.connect({ name: portName });
+        
+        logger.debug('建立新的端口连接:', portName);
+        
+        let accumulatedContent = '';
+        
+        // 改进消息监听器
+        port.onMessage.addListener((message) => {
+          logger.debug('收到Port消息:', message);
+          
+          try {
+            if (message.type === 'STREAM_CHUNK') {
+              accumulatedContent += message.data.content;
+              setStreamContent(accumulatedContent);
+              setSummary(accumulatedContent);
+            } else if (message.type === 'STREAM_ERROR') {
+              setHasError(true);
+              setErrorMessage(message.error);
+              port?.disconnect();
+            } else if (message.type === 'STREAM_DONE') {
+              setIsStreaming(false);
+              setSummary(accumulatedContent);
+              setIsLoading(false);
+              port?.disconnect();
+            }
+          } catch (error) {
+            logger.error('处理消息时发生错误:', error);
+            setHasError(true);
+            setErrorMessage('处理响应时发生错误');
+            port?.disconnect();
+          }
+        });
+
+        // 添加连接错误处理
+        port.onDisconnect.addListener(() => {
+          logger.debug('端口连接断开:', portName);
+          if (chrome.runtime.lastError) {
+            logger.error('连接错误:', chrome.runtime.lastError);
+          }
+        });
         
         // 1. 检查配置
         const configResponse = await messageService.sendToBackground({
           type: 'CHECK_LLM_CONFIG'
-        }) as CheckLLMConfigResponse
+        }) as CheckLLMConfigResponse;
 
         if (!configResponse.isConfigured) {
-          setIsConfigured(false)
-          return
+          setIsConfigured(false);
+          return;
         }
 
-        setIsConfigured(true)
+        setIsConfigured(true);
 
-        // 2. 生成总结
+        // 3. 发送请求
         const response = await messageService.sendToBackground({
           type: 'CHAT_REQUEST',
           data: {
             type: 'SUMMARY',
             title: article.title,
             content: article.textContent,
+            portName: port.name
           }
-        })
-
-        // 添加响应数据的调试日志
-        logger.debug('收到总结响应:', {
-          responseType: response.data instanceof ReadableStream ? 'stream' : typeof response.data,
-          hasError: !!response.error,
-          dataStructure: response.data instanceof ReadableStream ? 'ReadableStream' : JSON.stringify(response.data)
-        })
-
-        if (response.error) {
-          throw new Error(response.error)
-        }
-
-        // 处理流式响应
-        if (response.data instanceof ReadableStream) {
-          setIsStreaming(true)
-          const reader = response.data.getReader()
-          const decoder = new TextDecoder()
-          let accumulatedContent = ''
-          
-          try {
-            while (true) {
-              const { done, value } = await reader.read()
-              
-              if (done) {
-                setIsStreaming(false)
-                // 保存完整的内容
-                setSummary(accumulatedContent)
-                break
-              }
-              
-              // 解码并累加流式内容
-              const text = decoder.decode(value)
-              accumulatedContent += text
-              setStreamContent(accumulatedContent)
-            }
-          } catch (error) {
-            logger.error('处理流式响应时出错:', {
-              error,
-              accumulatedContent: accumulatedContent.substring(0, 100) + '...' // 记录部分累积的内容
-            })
-            throw new Error('处理流式响应时出错，请重试')
-          } finally {
-            reader.releaseLock()
-          }
-        } else if (response.data && typeof response.data === 'object') {
-          // 处理非流式响应
-          if ('choices' in response.data && Array.isArray(response.data.choices)) {
-            const content = response.data.choices[0]?.message?.content
-            if (content) {
-              setSummary(content)
-            } else {
-              logger.error('响应数据结构异常:', {
-                responseData: response.data,
-                choices: response.data.choices
-              })
-              throw new Error('响应数据格式错误')
-            }
-          } else if ('content' in response.data) {
-            // 直接返回内容的情况
-            setSummary(response.data.content)
-          } else {
-            logger.error('未知的响应数据结构:', response.data)
-            throw new Error('无法解析的响应数据格式')
-          }
+        });
+        
+        if (response.data?.type === 'STREAM_START') {
+          setIsStreaming(true);
         } else {
-          logger.error('无效的响应数据类型:', {
-            dataType: typeof response.data,
-            data: response.data
-          })
-          throw new Error('无效的响应数据')
+          port?.disconnect();
         }
 
       } catch (error) {
-        setHasError(true)
+        setHasError(true);
         const errorMessage = error instanceof Error 
           ? error.message 
           : '生成总结失败，请稍后重试'
         
-        setErrorMessage(errorMessage)
+        setErrorMessage(errorMessage);
         logger.error('生成总结失败:', {
           error,
           articleTitle: article.title,
           errorType: error instanceof Error ? error.name : 'Unknown',
           errorMessage: error instanceof Error ? error.message : String(error),
           articleLength: article.textContent?.length
-        })
-      } finally {
-        setIsLoading(false)
-        setIsStreaming(false)
+        });
+        port?.disconnect();
       }
-    }
 
-    void initialize()
-  }, [article, hasError])
+      return () => {
+        if (port) {
+          logger.debug('清理端口连接');
+          port.disconnect();
+        }
+      };
+    };
+
+    void initialize();
+  }, [article, hasError]);
 
   // 重置所有状态
   const resetError = () => {
-    setHasError(false)
-    setErrorMessage('')
-    setStreamContent('')
-    setSummary('')
-    setIsStreaming(false)
+    setHasError(false);
+    setErrorMessage('');
+    setStreamContent('');
+    setSummary('');
+    setIsStreaming(false);
   }
 
   // 渲染内容

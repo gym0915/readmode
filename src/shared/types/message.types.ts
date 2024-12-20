@@ -12,6 +12,10 @@ export type MessageType =
   | 'CHAT_RESPONSE'
   | 'GET_LLM_CONFIG'
   | 'GET_LLM_CONFIG_RESPONSE'
+  | 'STREAM_START'
+  | 'STREAM_CHUNK'
+  | 'STREAM_ERROR'
+  | 'STREAM_DONE'
 
 /**
  * 基础消息接口
@@ -80,18 +84,18 @@ export interface CheckLLMConfigResponse extends BaseMessage {
 /**
  * 对话请求消息
  */
+export interface ChatRequestData {
+  type: 'SUMMARY' | 'CHAT'
+  title?: string
+  content: string
+  language?: 'zh' | 'en'
+  messages?: Array<{ role: string; content: string }>
+  portName?: string
+}
+
 export interface ChatRequestMessage extends BaseMessage {
   type: 'CHAT_REQUEST'
-  data: {
-    type: 'SUMMARY' | 'CHAT'
-    title?: string
-    content: string
-    language?: 'zh' | 'en'
-    messages?: Array<{
-      role: string
-      content: string
-    }>
-  }
+  data: ChatRequestData
 }
 
 /**
@@ -112,8 +116,8 @@ export interface ChatResponseMessage extends BaseMessage {
       }
       finish_reason: string | null
     }>
-  }
-  error?: string
+  } | IStreamStartData  // 添加新的数据类型选项
+  error: string | null
 }
 
 /**
@@ -134,6 +138,35 @@ export interface GetLLMConfigResponse extends BaseMessage {
   }
   error?: string
 }
+
+/**
+ * 流式消息类型定义
+ */
+export interface IStreamStartData {
+  type: 'STREAM_START'
+}
+
+export interface StreamChunkMessage {
+  type: 'STREAM_CHUNK'
+  data: {
+    content: string
+    role: string
+  }
+}
+
+export interface StreamErrorMessage {
+  type: 'STREAM_ERROR'
+  error: string
+}
+
+export interface StreamDoneMessage {
+  type: 'STREAM_DONE'
+}
+
+export type StreamMessage = 
+  | StreamChunkMessage 
+  | StreamErrorMessage 
+  | StreamDoneMessage
 
 /**
  * 消息联合类型

@@ -14,6 +14,20 @@ const iconManager = new IconManagerService()
 const contentScriptManager = new ContentScriptManagerService()
 const articleCache = new ArticleCacheService()
 
+// 在文件顶部添加 port 管理
+const portMap = new Map<string, chrome.runtime.Port>();
+
+// 添加连接监听器
+chrome.runtime.onConnect.addListener((port) => {
+  logger.debug('收到新的端口连接:', port.name);
+  portMap.set(port.name, port);
+  
+  port.onDisconnect.addListener(() => {
+    logger.debug('端口断开连接:', port.name);
+    portMap.delete(port.name);
+  });
+});
+
 // 初始化所有功能
 const initializeFeatures = async () => {
   try {
@@ -208,36 +222,78 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
     let responseData: any
     
     if (allConfig.streaming) {
-      // 使用流式对话
-      const stream = new ReadableStream({
-        start: async (controller) => {
-          try {
-            await llmService.streamChat(
-              processedMessages,
-              (chunk) => {
-                logger.debug('收到流式响应块:', {
-                  role: chunk.role,
-                  contentPreview: chunk.content.substring(0, 50) + '...'
-                })
-                // 将数据块写入流
-                controller.enqueue(new TextEncoder().encode(chunk.content))
-              },
-              (error) => {
-                logger.error('流式对话出错:', error)
-                controller.error(error)
-              },
-              () => {
-                logger.info('流式对话完成')
-                controller.close()
-              }
-            )
-          } catch (error) {
-            controller.error(error)
-          }
-        }
-      })
+      // 使用传入的 portName 找到对应的连接
+      const port = message.data.portName ? portMap.get(message.data.portName) : null;
       
-      responseData = stream
+      if (!port) {
+        logger.error('Stream port not found:', {
+          portName: message.data.portName,
+          availablePorts: Array.from(portMap.keys())
+        });
+        throw new Error('Stream port not found');
+      }
+
+      let isPortConnected = true;
+      
+      port.onDisconnect.addListener(() => {
+        isPortConnected = false;
+        logger.debug('Stream port disconnected');
+        portMap.delete(message.data.portName!);
+      });
+
+      try {
+        await llmService.streamChat(
+          processedMessages,
+          (chunk) => {
+            if (isPortConnected) {
+              try {
+                port.postMessage({
+                  type: 'STREAM_CHUNK',
+                  data: {
+                    content: chunk.content,
+                    role: chunk.role
+                  }
+                });
+                logger.debug('成功发送流式数据块', {
+                  contentPreview: chunk.content.substring(0, 50),
+                  role: chunk.role
+                });
+              } catch (error) {
+                logger.error('发送流式数据块失败:', error);
+                isPortConnected = false;
+                portMap.delete(message.data.portName!);
+              }
+            }
+          },
+          (error) => {
+            if (isPortConnected) {
+              port.postMessage({
+                type: 'STREAM_ERROR',
+                error: error.message
+              });
+            }
+          },
+          () => {
+            if (isPortConnected) {
+              port.postMessage({ type: 'STREAM_DONE' });
+            }
+          }
+        );
+
+        return {
+          type: 'CHAT_RESPONSE',
+          data: { type: 'STREAM_START' },
+          error: null
+        };
+      } catch (error) {
+        if (isPortConnected) {
+          port.postMessage({
+            type: 'STREAM_ERROR',
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+        throw error;
+      }
     } else {
       // 使用普通对话
       responseData = await llmService.chat(processedMessages)
@@ -256,7 +312,7 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
       error: null
     }
   } catch (error) {
-    logger.error('对话请求处理失败:', {
+    logger.error('对话请求处��失败:', {
       error,
       type: message.data.type,
       errorType: error instanceof Error ? error.name : 'Unknown'
@@ -297,7 +353,7 @@ async function prepareMessages(message: ChatRequestMessage, config: any) {
       }
     ]
   } else {
-    // 普通对��请求
+    // 普通对话请求
     return message.data.messages || []
   }
 }
@@ -348,5 +404,5 @@ async function handleGetLLMConfig(): Promise<GetLLMConfigResponse> {
   }
 }
 
-// 添加��认导出
+// 添加默认导出
 export default {} 

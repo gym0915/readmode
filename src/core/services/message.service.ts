@@ -9,7 +9,8 @@ const logger = createLogger('message-service')
  * @description 处理扩展内部的消息传递
  */
 export class MessageService {
-  private listeners: Map<string, Function[]> = new Map()
+  private static subscribers: Set<(message: any) => void> = new Set();
+  private listeners: Map<string, Function[]> = new Map();
 
   /**
    * 发送消息到内容脚本
@@ -67,6 +68,26 @@ export class MessageService {
         callbacks.splice(index, 1)
       }
     }
+  }
+
+  static subscribe(callback: (message: any) => void) {
+    this.subscribers.add(callback);
+    logger.debug('添加消息订阅者');
+  }
+
+  static unsubscribe(callback: (message: any) => void) {
+    this.subscribers.delete(callback);
+    logger.debug('移除消息订阅者');
+  }
+
+  static sendToContent(message: any) {
+    this.subscribers.forEach(subscriber => {
+      try {
+        subscriber(message);
+      } catch (error) {
+        logger.error('发送消息到内容脚本失败:', error);
+      }
+    });
   }
 }
 
