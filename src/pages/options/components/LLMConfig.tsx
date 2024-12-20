@@ -19,7 +19,6 @@ interface ILLMConfigState {
 interface IModelData {
   selectedModel: string
   modelList: IModelInfo[]
-  streaming: boolean
   language: 'zh' | 'en'
 }
 
@@ -36,7 +35,6 @@ export const LLMConfig: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState("")
   const [models, setModels] = useState<IModelInfo[]>([])
   const [showApiKey, setShowApiKey] = useState(false)
-  const [streaming, setStreaming] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState<'zh' | 'en'>('zh')
 
   /**
@@ -54,12 +52,10 @@ export const LLMConfig: React.FC = () => {
       if (modelData) {
         setModels(modelData.modelList)
         setSelectedModel(modelData.selectedModel)
-        setStreaming(modelData.streaming ?? false)
         setSelectedLanguage(modelData.language ?? 'zh')
         logger.debug('已从 IndexedDB 加载模型数据', { 
           modelCount: modelData.modelList.length,
           selectedModel: modelData.selectedModel,
-          streaming: modelData.streaming,
           language: modelData.language
         })
       }
@@ -148,7 +144,6 @@ export const LLMConfig: React.FC = () => {
       await indexedDB.saveData(MODEL_DATA_KEY, {
         selectedModel,
         modelList: models,
-        streaming,
         language: selectedLanguage
       })
       logger.debug('模型数据已保存到 IndexedDB')
@@ -179,7 +174,6 @@ export const LLMConfig: React.FC = () => {
           baseUrl,
           model: selectedModel,
           modelList: models,
-          streaming,
           language: selectedLanguage
         }
       })
@@ -262,7 +256,7 @@ export const LLMConfig: React.FC = () => {
         </button>
       </div>
 
-      {/* 模型选择下拉框和保存按钮 */}
+      {/* 模型选择下拉框 */}
       <div className="space-y-4">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
@@ -280,30 +274,6 @@ export const LLMConfig: React.FC = () => {
               </option>
             ))}
           </select>
-        </div>
-
-        {/* 流式输出开关 */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-          <div className="space-y-1">
-            <span className="text-sm font-medium text-gray-700">流式输出</span>
-            <p className="text-xs text-gray-500">启用后将逐字显示 AI 的输出内容</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-500">{streaming ? '开启' : '关闭'}</span>
-            <button
-              type="button"
-              onClick={() => setStreaming(!streaming)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
-                streaming ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out ${
-                  streaming ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
         </div>
 
         {/* 语言设置 */}

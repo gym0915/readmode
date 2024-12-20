@@ -238,7 +238,7 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
       logger.debug('Port disconnected');
       portMap.delete(message.data.portName!);
     });
-
+    
     // 5. 根据streaming配置选择对话方式
     if (allConfig.streaming) {
       try {
