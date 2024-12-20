@@ -25,6 +25,10 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onDisconnect.addListener(() => {
     logger.debug('端口断开连接:', port.name);
     portMap.delete(port.name);
+    
+    if (chrome.runtime.lastError) {
+      logger.error('端口连接错误:', chrome.runtime.lastError);
+    }
   });
 });
 
@@ -75,7 +79,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 })
 
-// 标签页激活事件监听器
+// 标签���激活事件监听器
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   const tab = await chrome.tabs.get(tabId)
   if (tab.status === "complete") {
@@ -250,7 +254,7 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
                     role: chunk.role
                   }
                 });
-                logger.debug('成功发送流式数据块', {
+                logger.debug('成功发送��式数据块', {
                   contentPreview: chunk.content.substring(0, 50),
                   role: chunk.role
                 });
@@ -391,7 +395,7 @@ async function handleGetLLMConfig(): Promise<GetLLMConfigResponse> {
   try {
     const { config } = await llmConfigService.checkConfig()
     if (!config) {
-      throw new Error('未找到LLM配置')
+      throw new Error('未找到LLM配���')
     }
 
     // 打印配置信息

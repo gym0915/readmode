@@ -91,20 +91,18 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
 
   useEffect(() => {
     const initialize = async () => {
-      if (hasError) return;
+      // 重置所有状态
+      setIsLoading(true);
+      setStreamContent('');
+      setSummary('');
+      setHasError(false);
+      setErrorMessage('');
+      setIsStreaming(false);
+      cleanupTyped();
       
       let port: chrome.runtime.Port | null = null;
       
       try {
-        setIsLoading(true);
-        setStreamContent('');
-        setSummary('');
-        
-        // 确保之前的连接已关闭
-        if (port) {
-          port.disconnect();
-        }
-
         // 建立新连接
         const portName = `summary-${Date.now()}`;
         port = chrome.runtime.connect({ name: portName });
@@ -139,7 +137,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
             // 对于流式响应，使用 accumulatedContent
             if (isStreaming) {
               logger.debug('设置总结内容:', accumulatedContent);
-              // setSummary(accumulatedContent);
+               setSummary(accumulatedContent);
             }
             setIsLoading(false);
             setIsStreaming(false);
@@ -154,7 +152,11 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
         port.onDisconnect.addListener(() => {
           logger.debug('端口连接断开:', portName);
           if (chrome.runtime.lastError) {
-            logger.error('连接错误:', chrome.runtime.lastError);
+            const error = chrome.runtime.lastError;
+            logger.error('连接错误:', error);
+            setHasError(true);
+            setErrorMessage('连接已断开，请重试');
+            setIsLoading(false);
           }
         });
         
@@ -191,7 +193,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
         setHasError(true);
         const errorMessage = error instanceof Error 
           ? error.message 
-          : '生成总结失败，请稍后重试'
+          : '生成总结失败，请稍后重试';
         
         setErrorMessage(errorMessage);
         logger.error('生成总结失败:', {
@@ -201,28 +203,30 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           errorMessage: error instanceof Error ? error.message : String(error),
           articleLength: article.textContent?.length
         });
-        port?.disconnect();
+      } finally {
+        // 确保在组件卸载或重新初始化时清理端口连接
+        return () => {
+          if (port) {
+            logger.debug('清理端口连接');
+            port.disconnect();
+            port = null;
+          }
+        };
       }
-
-      return () => {
-        if (port) {
-          logger.debug('清理端口连接');
-          port.disconnect();
-        }
-      };
     };
 
     void initialize();
-  }, [article, hasError]);
+  }, [article, cleanupTyped]); // 移除 hasError 依赖，改为在 initialize 中重置
 
   // 重置所有状态
-  const resetError = () => {
+  const resetError = useCallback(() => {
     setHasError(false);
     setErrorMessage('');
     setStreamContent('');
     setSummary('');
     setIsStreaming(false);
-  }
+    cleanupTyped();
+  }, [cleanupTyped]);
 
   // 渲染内容
   const renderContent = () => {
