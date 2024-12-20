@@ -79,7 +79,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 })
 
-// 标签���激活事件监听器
+// 标签激活事件监听器
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   const tab = await chrome.tabs.get(tabId)
   if (tab.status === "complete") {
@@ -131,16 +131,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'PARSED_CONTENT' && sender.tab?.id) {
     articleCache.set(sender.tab.id, message.data)
   } else if (message.type === 'OPEN_OPTIONS_PAGE') {
-    // 处理打开选项页的消息
-    try {
-      chrome.tabs.create({
-        url: chrome.runtime.getURL(`options.html${message.hash || ''}`)
-      });
-      sendResponse({ success: true });
-    } catch (error) {
-      logger.error('打开选项页失败:', error);
-      sendResponse({ success: false, error });
-    }
+    logger.debug('打开选项页面，目标页签:', message.data?.tab);
+    // 使用 hash 参数来指定页签
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('options.html') + '#model'
+    });
   } else if (message.type === 'CHECK_LLM_CONFIG') {
     handleCheckLLMConfig()
       .then(sendResponse)
@@ -181,6 +176,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function handleCheckLLMConfig(): Promise<Message> {
   logger.info('开始检查LLM配置')
   const result = await llmConfigService.checkConfig()
+  logger.info('LLM配置检查结果:', result)
   return {
     type: 'CHECK_LLM_CONFIG_RESPONSE',
     ...result
@@ -238,7 +234,7 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
       logger.debug('Port disconnected');
       portMap.delete(message.data.portName!);
     });
-    
+
     // 5. 根据streaming配置选择对话方式
     if (allConfig.streaming) {
       try {
@@ -254,7 +250,7 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
                     role: chunk.role
                   }
                 });
-                logger.debug('成功发送��式数据块', {
+                logger.debug('成功发送流式数据块', {
                   contentPreview: chunk.content.substring(0, 50),
                   role: chunk.role
                 });
@@ -299,7 +295,7 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
       try {
         const responseData = await llmService.chat(processedMessages);
         logger.debug('普通对话响应:', responseData)
-        // 通过 port 发送响应
+        // 过 port 发送响应
         if (isPortConnected) {
           port.postMessage({
             type: 'CHAT_RESPONSE',
@@ -348,10 +344,11 @@ async function prepareMessages(message: ChatRequestMessage, config: any) {
         content: `你是一个专业的文章总结助手。你的任务是:
 1. 提取文章的核心信息,包括:
    - 主要事件和人物
-   - 关键时间和地点
+   - 关��时间和地点
    - 事件的起因、经过和结果
    - 重要影响和意义
 2. 生成一个结构清晰的总结:
+   - 标题: 一句话概括文章主题
    - 摘要: 2-3句话简述文章要点
    - 详细内容: 分点列出重要信息
    - 结论: 总结文章的核心观点或启示
@@ -395,7 +392,7 @@ async function handleGetLLMConfig(): Promise<GetLLMConfigResponse> {
   try {
     const { config } = await llmConfigService.checkConfig()
     if (!config) {
-      throw new Error('未找到LLM配���')
+      throw new Error('��找到LLM配置')
     }
 
     // 打印配置信息

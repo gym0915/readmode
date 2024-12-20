@@ -141,7 +141,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
             }
             setIsLoading(false);
             setIsStreaming(false);
-            logger.debug('响应完成，设置总结内容', {
+            logger.debug('响应完成，设置��结内容', {
               isStreaming,
               summaryContent: isStreaming ? accumulatedContent : summary
             });
@@ -167,6 +167,13 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
 
         if (!configResponse.isConfigured) {
           setIsConfigured(false);
+          setIsLoading(false);
+          logger.warn('LLM 模型未配置');
+          messageHandler.warningWithLink({
+            message: '请先完成 LLM 模型配置',
+            linkText: '前往配置',
+            onClick: handleOpenOptions
+          });
           return;
         }
 
@@ -190,19 +197,11 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
         }
 
       } catch (error) {
+        logger.error('检查配置失败:', error);
         setHasError(true);
-        const errorMessage = error instanceof Error 
-          ? error.message 
-          : '生成总结失败，请稍后重试';
-        
-        setErrorMessage(errorMessage);
-        logger.error('生成总结失败:', {
-          error,
-          articleTitle: article.title,
-          errorType: error instanceof Error ? error.name : 'Unknown',
-          errorMessage: error instanceof Error ? error.message : String(error),
-          articleLength: article.textContent?.length
-        });
+        setErrorMessage('检查配置失败，请稍后重试');
+        setIsLoading(false);
+        return;
       } finally {
         // 确保在组件卸载或重新初始化时清理端口连接
         return () => {
@@ -228,6 +227,15 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
     cleanupTyped();
   }, [cleanupTyped]);
 
+  // 1. 添加一个新的处理函数
+  const handleOpenOptions = useCallback(() => {
+    // 发送消息给 background script，指定要打开的标签页
+    chrome.runtime.sendMessage({ 
+      type: 'OPEN_OPTIONS_PAGE',
+      data: { tab: 'llm' }
+    });
+  }, []);
+
   // 渲染内容
   const renderContent = () => {
     // 添加调试日志
@@ -251,9 +259,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           <p>{errorMessage}</p>
           {errorMessage.includes('配置') && (
             <button 
-              onClick={() => {
-                chrome.runtime.openOptionsPage()
-              }}
+              onClick={handleOpenOptions}
               className={styles.configButton}
             >
               前往配置
@@ -273,9 +279,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           <h3 className={styles.promptTitle}>需要完成模型配置</h3>
           <p className={styles.promptDesc}>请先完成 LLM 模型配置才能使用总结功能</p>
           <button 
-            onClick={() => {
-              chrome.runtime.openOptionsPage()
-            }}
+            onClick={handleOpenOptions}
             className={styles.configButton}
           >
             前往配置
@@ -326,7 +330,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
             />
           </svg>
         </button>
-        <h2 className={styles.title}>文章总结</h2>
+        <h2 className={styles.title}>文章总</h2>
       </div>
       <div className={styles.content}>
         {renderContent()}
