@@ -28,6 +28,8 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
   const [hasError, setHasError] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string>('')
   const toggleSummary = useReaderStore((state) => state.toggleSummary)
+  const [streamContent, setStreamContent] = useState<string>('')
+  const [isStreaming, setIsStreaming] = useState(false)
 
   useEffect(() => {
     const initialize = async () => {
@@ -35,8 +37,10 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
       
       try {
         setIsLoading(true)
+        setStreamContent('')
+        setSummary('')
         
-        // 1. 先检查配置
+        // 1. 检查配置
         const configResponse = await messageService.sendToBackground({
           type: 'CHECK_LLM_CONFIG'
         }) as CheckLLMConfigResponse
@@ -48,43 +52,117 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
 
         setIsConfigured(true)
 
-        // 2. 再生成总结
+        // 2. 生成总结
         const response = await messageService.sendToBackground({
           type: 'CHAT_REQUEST',
           data: {
             type: 'SUMMARY',
             title: article.title,
             content: article.textContent,
-            // 这里可以从配置中获取语言设置
           }
+        })
+
+        // 添加响应数据的调试日志
+        logger.debug('收到总结响应:', {
+          responseType: response.data instanceof ReadableStream ? 'stream' : typeof response.data,
+          hasError: !!response.error,
+          dataStructure: response.data instanceof ReadableStream ? 'ReadableStream' : JSON.stringify(response.data)
         })
 
         if (response.error) {
           throw new Error(response.error)
         }
 
-        // 处理响应...
+        // 处理流式响应
         if (response.data instanceof ReadableStream) {
-          // 处理流式响应...
+          setIsStreaming(true)
+          const reader = response.data.getReader()
+          const decoder = new TextDecoder()
+          let accumulatedContent = ''
+          
+          try {
+            while (true) {
+              const { done, value } = await reader.read()
+              
+              if (done) {
+                setIsStreaming(false)
+                // 保存完整的内容
+                setSummary(accumulatedContent)
+                break
+              }
+              
+              // 解码并累加流式内容
+              const text = decoder.decode(value)
+              accumulatedContent += text
+              setStreamContent(accumulatedContent)
+            }
+          } catch (error) {
+            logger.error('处理流式响应时出错:', {
+              error,
+              accumulatedContent: accumulatedContent.substring(0, 100) + '...' // 记录部分累积的内容
+            })
+            throw new Error('处理流式响应时出错，请重试')
+          } finally {
+            reader.releaseLock()
+          }
+        } else if (response.data && typeof response.data === 'object') {
+          // 处理非流式响应
+          if ('choices' in response.data && Array.isArray(response.data.choices)) {
+            const content = response.data.choices[0]?.message?.content
+            if (content) {
+              setSummary(content)
+            } else {
+              logger.error('响应数据结构异常:', {
+                responseData: response.data,
+                choices: response.data.choices
+              })
+              throw new Error('响应数据格式错误')
+            }
+          } else if ('content' in response.data) {
+            // 直接返回内容的情况
+            setSummary(response.data.content)
+          } else {
+            logger.error('未知的响应数据结构:', response.data)
+            throw new Error('无法解析的响应数据格式')
+          }
         } else {
-          setSummary(response.data.choices[0].message.content)
+          logger.error('无效的响应数据类型:', {
+            dataType: typeof response.data,
+            data: response.data
+          })
+          throw new Error('无效的响应数据')
         }
 
       } catch (error) {
         setHasError(true)
-        // 错误处理...
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : '生成总结失败，请稍后重试'
+        
+        setErrorMessage(errorMessage)
+        logger.error('生成总结失败:', {
+          error,
+          articleTitle: article.title,
+          errorType: error instanceof Error ? error.name : 'Unknown',
+          errorMessage: error instanceof Error ? error.message : String(error),
+          articleLength: article.textContent?.length
+        })
       } finally {
         setIsLoading(false)
+        setIsStreaming(false)
       }
     }
 
     void initialize()
   }, [article, hasError])
 
-  // 重置错误状态
+  // 重置所有状态
   const resetError = () => {
     setHasError(false)
     setErrorMessage('')
+    setStreamContent('')
+    setSummary('')
+    setIsStreaming(false)
   }
 
   // 渲染内容
@@ -153,7 +231,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
                   <pre className={styles.codeBlock}><code {...props} /></pre>
             }}
           >
-            {summary}
+            {isStreaming ? streamContent : summary}
           </ReactMarkdown>
         </div>
       </div>

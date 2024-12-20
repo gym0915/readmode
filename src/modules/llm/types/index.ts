@@ -63,4 +63,12 @@ export interface IChatResponse {
     }
     finish_reason: string | null
   }>
-} 
+}
+
+/**
+ * 流式对话响应接口
+ */
+export interface IChatStreamResponse {
+  content: string
+  role: string
+}

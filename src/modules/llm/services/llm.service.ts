@@ -4,7 +4,8 @@ import type {
   IModelsResponse, 
   ILLMError,
   IChatRequest,
-  IChatResponse 
+  IChatResponse,
+  IChatStreamResponse
 } from '../types'
 import { API_ENDPOINTS, HTTP_HEADERS, CONTENT_TYPES } from '../constants'
 
@@ -245,4 +246,136 @@ export class LLMService {
       throw error
     }
   }
-} 
+
+  /**
+   * 流式对话接口
+   * @param messages - 对话消息数组
+   * @param onMessage - 处理每个消息块的回调函数
+   * @param onError - 错误处理回调函数
+   * @param onComplete - 对话完成时的回调函数
+   * 
+   * @example
+   * ```typescript
+   * await llmService.streamChat(
+   *   messages,
+   *   (chunk) => console.log(chunk.content),
+   *   (error) => console.error(error),
+   *   () => console.log('对话完成')
+   * );
+   * ```
+   */
+  public async streamChat(
+    messages: Array<{ role: string; content: string }>,
+    onMessage: (chunk: IChatStreamResponse) => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void
+  ): Promise<void> {
+    try {
+      const url = `${this.config.baseUrl}/chat/completions`
+      const messagesWithLanguage = [...messages]
+      
+      this.logger.debug('开始流式对话请求', { 
+        url, 
+        messages: messagesWithLanguage,
+        model: this.config.model
+      })
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          model: this.config.model,
+          messages: messagesWithLanguage,
+          stream: true
+        })
+      })
+
+      // 修改错误处理逻辑
+      if (!response.ok) {
+        const errorText = await response.text()
+        let errorMessage: string
+        try {
+          const error = JSON.parse(errorText) as ILLMError
+          errorMessage = error.message || '流式对话请求失败'
+        } catch {
+          errorMessage = errorText || `请求失败: ${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMessage)
+      }
+
+      this.logger.debug('流式对话请求响应', { response })
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('无法获取响应流')
+      }
+
+      this.logger.debug('成功获取响应流reader')
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        
+        if (done) {
+          onComplete?.()
+          this.logger.debug('流式对话完成')
+          break
+        }
+
+        // 记录接收到的原始数据
+        this.logger.debug('接收到流式数据:', {
+          valueLength: value?.length,
+          valuePreview: value ? decoder.decode(value.slice(0, 50)) : null
+        })
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.trim() === '') continue
+          if (line.trim() === 'data: [DONE]') continue
+
+          try {
+            const data = JSON.parse(line.replace(/^data: /, ''))
+            if (data?.choices?.[0]?.delta?.content) {
+              const chunk: IChatStreamResponse = {
+                content: data.choices[0].delta.content,
+                role: data.choices[0].delta.role || 'assistant'
+              }
+              this.logger.debug('解析到新的内容块:', {
+                content: chunk.content.substring(0, 50) + '...',
+                role: chunk.role
+              })
+              onMessage(chunk)
+            }
+          } catch (error) {
+            this.logger.warn('解析流式响应数据失败', { 
+              line,
+              error: error instanceof Error ? error.message : String(error)
+            })
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error('流式对话过程发生错误', { 
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error,
+        requestDetails: {
+          url: `${this.config.baseUrl}/chat/completions`,
+          model: this.config.model,
+          messageCount: messages.length
+        }
+      })
+      if (onError && error instanceof Error) {
+        onError(error)
+      }
+      throw error
+    }
+  }
+}

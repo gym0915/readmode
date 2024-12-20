@@ -173,7 +173,10 @@ async function handleCheckLLMConfig(): Promise<Message> {
  * 处理对话请求
  */
 async function handleChatRequest(message: ChatRequestMessage): Promise<ChatResponseMessage> {
-  logger.info('开始处理对话请求')
+  logger.info('开始处理对话请求', {
+    type: message.data.type,
+    contentLength: message.data.content?.length
+  })
   
   try {
     // 1. 验证LLM配置
@@ -187,15 +190,91 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
     logger.info('获取到的配置:', allConfig)
 
     // 3. 根据请求类型处理消息
-    let processedMessages = []
+    const processedMessages = await prepareMessages(message, allConfig)
+
+    // 4. 创建LLM服务实例
+    const llmService = new LLMService({
+      apiKey: allConfig.apiKey,
+      baseUrl: allConfig.baseUrl,
+      model: allConfig.selectedModel,
+      language: allConfig.language,
+      streaming: allConfig.streaming
+    })
+
+    // 打印请求参数（排除敏感信息）
+    logRequestParameters(allConfig, config, processedMessages)
+
+    // 5. 根据streaming配置选择对话方式
+    let responseData: any
     
-    if (message.data.type === 'SUMMARY') {
-      const language = allConfig.language === 'zh' ? '中文' : '英文'
+    if (allConfig.streaming) {
+      // 使用流式对话
+      const stream = new ReadableStream({
+        start: async (controller) => {
+          try {
+            await llmService.streamChat(
+              processedMessages,
+              (chunk) => {
+                logger.debug('收到流式响应块:', {
+                  role: chunk.role,
+                  contentPreview: chunk.content.substring(0, 50) + '...'
+                })
+                // 将数据块写入流
+                controller.enqueue(new TextEncoder().encode(chunk.content))
+              },
+              (error) => {
+                logger.error('流式对话出错:', error)
+                controller.error(error)
+              },
+              () => {
+                logger.info('流式对话完成')
+                controller.close()
+              }
+            )
+          } catch (error) {
+            controller.error(error)
+          }
+        }
+      })
       
-      processedMessages = [
-        {
-          role: 'system',
-          content: `你是一个专业的文章总结助手。你的任务是:
+      responseData = stream
+    } else {
+      // 使用普通对话
+      responseData = await llmService.chat(processedMessages)
+    }
+
+    // 在返回响应前记录日志
+    logger.debug('准备返回响应:', {
+      isStream: allConfig.streaming,
+      messageCount: processedMessages.length,
+      responseType: responseData instanceof ReadableStream ? 'stream' : 'normal'
+    })
+
+    return {
+      type: 'CHAT_RESPONSE',
+      data: responseData,
+      error: null
+    }
+  } catch (error) {
+    logger.error('对话请求处理失败:', {
+      error,
+      type: message.data.type,
+      errorType: error instanceof Error ? error.name : 'Unknown'
+    })
+    throw error
+  }
+}
+
+/**
+ * 准备对话消息
+ */
+async function prepareMessages(message: ChatRequestMessage, config: any) {
+  if (message.data.type === 'SUMMARY') {
+    const language = config.language === 'zh' ? '中文' : '英文'
+    return [
+      {
+        role: 'system',
+        content: `你是一个专业的文章总结助手。你的任务是:
 1. 提取文章的核心信息,包括:
    - 主要事件和人物
    - 关键时间和地点
@@ -211,52 +290,31 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
    - 突出重点信息
    - 保留原文的关键数据和引用
    - 总字数控制在500字左右`
-        },
-        {
-          role: 'user',
-          content: `请用${language}总结以下文章:\n\n标题: ${message.data.title}\n\n正文:\n${message.data.content}`
-        }
-      ]
-    } else if (message.data.type === 'CHAT') {
-      // 普通对话请求
-      processedMessages = message.data.messages || []
-    }
-
-    // 4. 创建LLM服务实例并发送请求
-    const llmService = new LLMService({
-      apiKey: allConfig.apiKey,
-      baseUrl: allConfig.baseUrl,
-      model: allConfig.selectedModel,
-      language: allConfig.language,
-      streaming: allConfig.streaming
-    })
-
-    // 打印完整的请求参数
-    logger.debug('LLM请求参数:', {
-      apiKey: `${allConfig.apiKey.substring(0, 4)}...${allConfig.apiKey.slice(-4)}`, // 部分隐藏
-      baseUrl: allConfig.baseUrl,
-      model: config.selectedModel,
-      streaming: allConfig.streaming,
-      messagesCount: processedMessages.length,
-      firstMessageRole: processedMessages[0]?.role,
-      firstMessagePreview: processedMessages[0]?.content.substring(0, 50) + '...'
-    })
-
-    // 5. 发送对话请求
-    const response = await llmService.chat(processedMessages)
-
-    return {
-      type: 'CHAT_RESPONSE',
-      data: response
-    }
-  } catch (error) {
-    logger.error('对话请求失败:', {
-      error,
-      errorName: error instanceof Error ? error.name : 'Unknown',
-      errorMessage: error instanceof Error ? error.message : String(error)
-    })
-    throw error
+      },
+      {
+        role: 'user',
+        content: `请用${language}总结以下文章:\n\n标题: ${message.data.title}\n\n正文:\n${message.data.content}`
+      }
+    ]
+  } else {
+    // 普通对��请求
+    return message.data.messages || []
   }
+}
+
+/**
+ * 记录请求参数
+ */
+function logRequestParameters(allConfig: any, config: any, messages: any[]) {
+  logger.debug('LLM请求参数:', {
+    apiKey: `${allConfig.apiKey.substring(0, 4)}...${allConfig.apiKey.slice(-4)}`,
+    baseUrl: allConfig.baseUrl,
+    model: config.selectedModel,
+    streaming: allConfig.streaming,
+    messagesCount: messages.length,
+    firstMessageRole: messages[0]?.role,
+    firstMessagePreview: messages[0]?.content.substring(0, 50) + '...'
+  })
 }
 
 /**
@@ -290,5 +348,5 @@ async function handleGetLLMConfig(): Promise<GetLLMConfigResponse> {
   }
 }
 
-// 添加默认导出
+// 添加��认导出
 export default {} 
