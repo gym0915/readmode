@@ -215,7 +215,13 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
               p: ({node, ...props}) => <p className={styles.paragraph} {...props} />,
               ul: ({node, ...props}) => <ul className={styles.list} {...props} />,
               ol: ({node, ...props}) => <ol className={styles.orderedList} {...props} />,
-              li: ({node, ...props}) => <li className={styles.listItem} {...props} />,
+              li: ({node, ordered, ...props}) => (
+                <li 
+                  className={`${styles.listItem} ${ordered ? styles.orderedListItem : styles.unorderedListItem}`}
+                  data-ordered={ordered ? "true" : "false"}
+                  {...props} 
+                />
+              ),
               blockquote: ({node, ...props}) => <blockquote className={styles.blockquote} {...props} />,
               code: ({node, inline, ...props}) => 
                 inline ? 
