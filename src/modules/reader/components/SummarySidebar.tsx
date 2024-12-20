@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import styles from './SummarySidebar.module.css'
 import type { IArticle } from '../types/article.types'
 import { createLogger, ELogLevel } from '~/shared/utils/logger'
@@ -13,6 +13,7 @@ import { CryptoManager } from "~/shared/utils/crypto-manager"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { MessageService } from '~/core/services/message.service'
+import Typed from 'typed.js'
 
 const logger = createLogger('SummarySidebar', ELogLevel.DEBUG)
 const messageHandler = MessageHandler.getInstance()
@@ -31,6 +32,62 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
   const toggleSummary = useReaderStore((state) => state.toggleSummary)
   const [streamContent, setStreamContent] = useState<string>('')
   const [isStreaming, setIsStreaming] = useState(false)
+  const typedRef = useRef<Typed | null>(null);
+  const typedElementRef = useRef<HTMLDivElement>(null);
+
+  // 清理 Typed 实例
+  const cleanupTyped = useCallback(() => {
+    if (typedRef.current) {
+      typedRef.current.destroy();
+      typedRef.current = null;
+    }
+  }, []);
+
+  // 处理流式内容更新
+  const handleStreamContent = useCallback((content: string) => {
+    if (!typedElementRef.current) return;
+    
+    if (!typedRef.current) {
+      typedRef.current = new Typed(typedElementRef.current, {
+        strings: [''],
+        typeSpeed: 20,
+        showCursor: true,
+        cursorChar: '▋',
+        onComplete: () => {
+          if (typedRef.current?.cursor) {
+            typedRef.current.cursor.remove();
+          }
+        }
+      });
+    }
+    
+    // 只追加新内容
+    const currentText = typedElementRef.current.textContent || '';
+    const newContent = content.slice(currentText.length);
+    
+    if (newContent) {
+      typedRef.current.destroy();
+      typedRef.current = new Typed(typedElementRef.current, {
+        strings: [content],
+        typeSpeed: 20,
+        startDelay: 0,
+        showCursor: true,
+        cursorChar: '▋',
+        onComplete: () => {
+          if (typedRef.current?.cursor) {
+            typedRef.current.cursor.remove();
+          }
+        }
+      });
+    }
+  }, []);
+
+  // 在组件卸载时清理
+  useEffect(() => {
+    return () => {
+      cleanupTyped();
+    };
+  }, [cleanupTyped]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -65,12 +122,14 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
             if (message.data?.choices?.[0]?.message?.content) {
               const content = message.data.choices[0].message.content;
               logger.debug('收到响应内容:', { contentPreview: content.substring(0, 50) });
-              setStreamContent(content);
+              handleStreamContent(content);
               setSummary(content);
             }
           } else if (message.type === 'STREAM_CHUNK') {
+            setIsLoading(false)
             accumulatedContent += message.data.content;
-            setStreamContent(accumulatedContent);
+            handleStreamContent(accumulatedContent);
+            setSummary(accumulatedContent);
           } else if (message.type === 'STREAM_ERROR') {
             setHasError(true);
             setErrorMessage(message.error || '生成总结失败');
@@ -79,9 +138,11 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           } else if (message.type === 'STREAM_DONE') {
             // 对于流式响应，使用 accumulatedContent
             if (isStreaming) {
-              setSummary(accumulatedContent);
+              logger.debug('设置总结内容:', accumulatedContent);
+              // setSummary(accumulatedContent);
             }
             setIsLoading(false);
+            setIsStreaming(false);
             logger.debug('响应完成，设置总结内容', {
               isStreaming,
               summaryContent: isStreaming ? accumulatedContent : summary
@@ -165,6 +226,17 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
 
   // 渲染内容
   const renderContent = () => {
+    // 添加调试日志
+    logger.debug('渲染状态:', {
+      isLoading,
+      hasError,
+      isConfigured,
+      isStreaming,
+      summaryLength: summary.length,
+      hasTypedRef: !!typedRef.current,
+      hasTypedElement: !!typedElementRef.current
+    });
+
     if (isLoading) {
       return <div className={styles.loading}>正在生成总结...</div>
     }
@@ -211,35 +283,16 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
     return (
       <div className={styles.summary}>
         <div className={styles.summaryContent}>
-          <ReactMarkdown 
-            remarkPlugins={[remarkGfm]}
-            components={{
-              // 自定义组件渲染
-              h1: ({node, ...props}) => <h1 className={styles.heading1} {...props} />,
-              h2: ({node, ...props}) => <h2 className={styles.heading2} {...props} />,
-              h3: ({node, ...props}) => <h3 className={styles.heading3} {...props} />,
-              p: ({node, ...props}) => <p className={styles.paragraph} {...props} />,
-              ul: ({node, ...props}) => <ul className={styles.list} {...props} />,
-              ol: ({node, ...props}) => <ol className={styles.orderedList} {...props} />,
-              li: ({node, ordered, ...props}) => {
-                // 移除 ordered 属性，只使用它来决定类名
-                const listItemClass = ordered ? styles.orderedListItem : styles.unorderedListItem;
-                return (
-                  <li 
-                    className={`${styles.listItem} ${listItemClass}`}
-                    {...props} 
-                  />
-                );
-              },
-              blockquote: ({node, ...props}) => <blockquote className={styles.blockquote} {...props} />,
-              code: ({node, inline, ...props}) => 
-                inline ? 
-                  <code className={styles.inlineCode} {...props} /> : 
-                  <pre className={styles.codeBlock}><code {...props} /></pre>
-            }}
-          >
-            {isStreaming ? streamContent : summary}
-          </ReactMarkdown>
+          {isStreaming ? (
+            <div 
+              ref={typedElementRef}
+              className={styles.typedContent}
+            />
+          ) : (
+            <ReactMarkdown>
+              {summary}
+            </ReactMarkdown>
+          )}
         </div>
       </div>
     )
