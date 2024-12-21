@@ -62,7 +62,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
       });
     }
     
-    // 只追加��容
+    // 只追加
     const currentText = typedElementRef.current.textContent || '';
     const newContent = content.slice(currentText.length);
     
@@ -90,128 +90,130 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
     };
   }, [cleanupTyped]);
 
-  useEffect(() => {
-    const initialize = async () => {
-      // 重置所有状态
-      setIsLoading(true);
-      setStreamContent('');
-      setSummary('');
-      setHasError(false);
-      setErrorMessage('');
-      setIsStreaming(false);
-      cleanupTyped();
+  // 将 initialize 函数提取到 useEffect 外部
+  const initialize = useCallback(async () => {
+    // 重置所有状态
+    setIsLoading(true);
+    setStreamContent('');
+    setSummary('');
+    setHasError(false);
+    setErrorMessage('');
+    setIsStreaming(false);
+    cleanupTyped();
+    
+    let port: chrome.runtime.Port | null = null;
+    
+    try {
+      // 建立新连接
+      const portName = `summary-${Date.now()}`;
+      port = chrome.runtime.connect({ name: portName });
       
-      let port: chrome.runtime.Port | null = null;
+      logger.debug('建立新的端口连接:', portName);
       
-      try {
-        // 建立新连接
-        const portName = `summary-${Date.now()}`;
-        port = chrome.runtime.connect({ name: portName });
+      let accumulatedContent = '';
+      
+      // 改进消息监听器
+      port.onMessage.addListener((message) => {
+        logger.debug('收到Port消息:', message);
         
-        logger.debug('建立新的端口连接:', portName);
-        
-        let accumulatedContent = '';
-        
-        // 改进消息监听器
-        port.onMessage.addListener((message) => {
-          logger.debug('收到Port消息:', message);
-          
-          if (message.type === 'CHAT_RESPONSE') {
-            // 处理非流式响应
-            if (message.data?.choices?.[0]?.message?.content) {
-              const content = message.data.choices[0].message.content;
-              logger.debug('收到响应内容:', { contentPreview: content.substring(0, 50) });
-              handleStreamContent(content);
-              setSummary(content);
-            }
-          } else if (message.type === 'STREAM_CHUNK') {
-            setIsLoading(false)
-            accumulatedContent += message.data.content;
-            handleStreamContent(accumulatedContent);
-            setSummary(accumulatedContent);
-          } else if (message.type === 'STREAM_ERROR') {
-            setHasError(true);
-            setErrorMessage(message.error || '生成总结失败');
-            logger.error('响应错误:', message.error);
-            setIsLoading(false);
-          } else if (message.type === 'STREAM_DONE') {
-            // 对于流式响应，使用 accumulatedContent
-            if (isStreaming) {
-              logger.debug('设置总结内容:', accumulatedContent);
-               setSummary(accumulatedContent);
-            }
-            setIsLoading(false);
-            setIsStreaming(false);
-            logger.debug('响应完成，设置总结内容', {
-              isStreaming,
-              summaryContent: isStreaming ? accumulatedContent : summary
-            });
+        if (message.type === 'CHAT_RESPONSE') {
+          // 处理非流式响应
+          if (message.data?.choices?.[0]?.message?.content) {
+            const content = message.data.choices[0].message.content;
+            logger.debug('收到响应内容:', { contentPreview: content.substring(0, 50) });
+            handleStreamContent(content);
+            setSummary(content);
           }
-        });
-
-        // 添加连接错误处理
-        port.onDisconnect.addListener(() => {
-          logger.debug('端口连接断开:', portName);
-          if (chrome.runtime.lastError) {
-            const error = chrome.runtime.lastError;
-            logger.error('连接错误:', error);
-            setHasError(true);
-            setErrorMessage('连接已断开，请重试');
-            setIsLoading(false);
-          }
-        });
-        
-        // 1. 检查配置
-        const configResponse = await messageService.sendToBackground({
-          type: 'CHECK_LLM_CONFIG'
-        }) as CheckLLMConfigResponse;
-
-        if (!configResponse.isConfigured) {
-          setIsConfigured(false);
+        } else if (message.type === 'STREAM_CHUNK') {
+          setIsLoading(false)
+          accumulatedContent += message.data.content;
+          handleStreamContent(accumulatedContent);
+          setSummary(accumulatedContent);
+        } else if (message.type === 'STREAM_ERROR') {
+          setHasError(true);
+          setErrorMessage(message.error || '生成总结失败');
+          logger.error('响应错误:', message.error);
           setIsLoading(false);
-          logger.warn('LLM 模型未配置');
-          return;
-        }
-
-        setIsConfigured(true);
-
-        // 3. 发送请求
-        const response = await messageService.sendToBackground({
-          type: 'CHAT_REQUEST',
-          data: {
-            type: 'SUMMARY',
-            title: article.title,
-            content: article.textContent,
-            portName: port.name
+        } else if (message.type === 'STREAM_DONE') {
+          // 对于流式响应，使用 accumulatedContent
+          if (isStreaming) {
+            logger.debug('设置总结内容:', accumulatedContent);
+             setSummary(accumulatedContent);
           }
-        });
-        
-        if (response.data?.type === 'STREAM_START') {
-          setIsStreaming(true);
-        } else {
-          port?.disconnect();
+          setIsLoading(false);
+          setIsStreaming(false);
+          logger.debug('响应完成，设置总结内容', {
+            isStreaming,
+            summaryContent: isStreaming ? accumulatedContent : summary
+          });
         }
+      });
 
-      } catch (error) {
-        logger.error('检查配置失败:', error);
-        setHasError(true);
-        setErrorMessage('检查配置失败，请稍后重试');
+      // 添加连接错误处理
+      port.onDisconnect.addListener(() => {
+        logger.debug('端口连接断开:', portName);
+        if (chrome.runtime.lastError) {
+          const error = chrome.runtime.lastError;
+          logger.error('连接错误:', error);
+          setHasError(true);
+          setErrorMessage('连接已断开，请重试');
+          setIsLoading(false);
+        }
+      });
+      
+      // 1. 检查配置
+      const configResponse = await messageService.sendToBackground({
+        type: 'CHECK_LLM_CONFIG'
+      }) as CheckLLMConfigResponse;
+
+      if (!configResponse.isConfigured) {
+        setIsConfigured(false);
         setIsLoading(false);
+        logger.warn('LLM 模型未配置');
         return;
-      } finally {
-        // 确保在组件卸载或重新初始化时清理端口连接
-        return () => {
-          if (port) {
-            logger.debug('清理端口连接');
-            port.disconnect();
-            port = null;
-          }
-        };
       }
-    };
 
+      setIsConfigured(true);
+
+      // 3. 发送请求
+      const response = await messageService.sendToBackground({
+        type: 'CHAT_REQUEST',
+        data: {
+          type: 'SUMMARY',
+          title: article.title,
+          content: article.textContent,
+          portName: port.name
+        }
+      });
+      
+      if (response.data?.type === 'STREAM_START') {
+        setIsStreaming(true);
+      } else {
+        port?.disconnect();
+      }
+
+    } catch (error) {
+      logger.error('检查配置失败:', error);
+      setHasError(true);
+      setErrorMessage('检查配置失败，请稍后重试');
+      setIsLoading(false);
+      return;
+    } finally {
+      // 确保在组件卸载或重新初始化时清理端口连接
+      return () => {
+        if (port) {
+          logger.debug('清理端口连接');
+          port.disconnect();
+          port = null;
+        }
+      };
+    }
+  }, [article, cleanupTyped]); // 添加必要的依赖
+
+  // 使用 useEffect 调用 initialize
+  useEffect(() => {
     void initialize();
-  }, [article, cleanupTyped]); // 移除 hasError 依赖，改为在 initialize 中重置
+  }, [initialize]);
 
   // 重置所有状态
   const resetError = useCallback(() => {
@@ -231,6 +233,12 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
       data: { tab: 'llm' }
     });
   }, []);
+
+  // 添加重新总结的处理函数
+  const handleRefresh = useCallback(() => {
+    resetError();
+    void initialize();
+  }, [resetError, initialize]); // 添加 initialize 作为依赖
 
   // 渲染内容
   const renderContent = () => {
@@ -337,27 +345,57 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           />
           <h2 className={styles.title}>Readfun</h2>
         </div>
-        <button 
-          className={styles.closeButton}
-          onClick={onClose}
-          aria-label="关闭总结面板"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+        <div className={styles.headerButtons}>
+          <button 
+            className={styles.refreshButton}
+            onClick={handleRefresh}
+            disabled={isLoading}
+            aria-label="重新总结"
           >
-            <path
-              d="M15 5L5 15M5 5L15 15"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 20.75C16.9706 20.75 21 16.7206 21 11.75C21 6.77944 16.9706 2.75 12 2.75C7.02944 2.75 3 6.77944 3 11.75"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M3 6.75V11.75H8"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <button 
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="关闭总结面板"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 5L5 15M5 5L15 15"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
       <div className={styles.content}>
         {renderContent()}
