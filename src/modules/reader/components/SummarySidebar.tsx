@@ -62,7 +62,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
       });
     }
     
-    // 只追加新内容
+    // 只追加内容
     const currentText = typedElementRef.current.textContent || '';
     const newContent = content.slice(currentText.length);
     
@@ -272,8 +272,9 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
       return (
         <div className={styles.configPrompt}>
           <div className={styles.promptIcon}>⚙️</div>
-          <h3 className={styles.promptTitle}>需要完成模型配置</h3>
-          <p className={styles.promptDesc}>请先完成 LLM 模型配置才能使用总结功能</p>
+          <p className={styles.promptDesc}>
+            需要配置 AI 模型才能使用总结功能
+          </p>
           <button 
             onClick={handleOpenOptions}
             className={styles.configButton}
