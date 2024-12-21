@@ -62,7 +62,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
       });
     }
     
-    // 只追加内容
+    // 只追加��容
     const currentText = typedElementRef.current.textContent || '';
     const newContent = content.slice(currentText.length);
     
@@ -246,7 +246,27 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
     });
 
     if (isLoading) {
-      return <div className={styles.loading}>正在生成总结...</div>
+      return (
+        <div className={styles.loading}>
+          <div className={styles.loadingIcon}>
+            <svg 
+              className={styles.spinner} 
+              viewBox="0 0 50 50"
+            >
+              <circle
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                strokeWidth="4"
+              />
+            </svg>
+          </div>
+          <div className={styles.loadingText}>
+            正在生成总结<span className={styles.dots}>...</span>
+          </div>
+        </div>
+      )
     }
 
     if (hasError) {
