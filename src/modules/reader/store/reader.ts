@@ -16,8 +16,7 @@ export const useReaderStore = create<ReaderState>((set) => ({
   isToolbarVisible: true,
   toggleReaderMode: () => set((state) => ({ isReaderMode: !state.isReaderMode })),
   toggleSummary: () => set((state) => ({ 
-    isSummaryVisible: !state.isSummaryVisible,
-    isToolbarVisible: false
+    isSummaryVisible: !state.isSummaryVisible
   })),
   setToolbarVisible: (visible) => set({ isToolbarVisible: visible }),
   resetState: () => set({

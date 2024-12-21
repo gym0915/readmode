@@ -8,6 +8,7 @@ import type { Message, ChatRequestMessage, GetLLMConfigResponse, ChatResponseMes
 import { LLMService } from '~/modules/llm'
 import { decryptText } from '~/shared/utils/crypto'
 import { CryptoManager } from "~/shared/utils/crypto-manager"
+import { IndexedDBManager } from '~/shared/utils/indexed-db'
 
 const logger = createLogger("background")
 const iconManager = new IconManagerService()
@@ -31,6 +32,16 @@ chrome.runtime.onConnect.addListener((port) => {
     }
   });
 });
+
+// 添加配置管理相关常量
+const GENERAL_CONFIG_KEY = "generalConfig"
+const STORE_NAME = "generalConfig"
+
+interface GeneralConfig {
+  theme: 'light' | 'dark'
+  autoSummary: boolean
+  language: 'zh' | 'en'
+}
 
 // 初始化所有功能
 const initializeFeatures = async () => {
@@ -164,6 +175,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           type: 'GET_LLM_CONFIG_RESPONSE',
           error: error instanceof Error ? error.message : '获取配置失败'
         })
+      })
+    return true
+  } else if (message.type === 'GET_GENERAL_CONFIG') {
+    handleGetGeneralConfig()
+      .then(config => {
+        sendResponse({ data: config, error: null })
+      })
+      .catch(error => {
+        logger.error('处理GET_GENERAL_CONFIG消息失败:', error)
+        sendResponse({ data: null, error: String(error) })
       })
     return true
   }
@@ -413,6 +434,21 @@ async function handleGetLLMConfig(): Promise<GetLLMConfigResponse> {
   } catch (error) {
     logger.error('获取LLM配置失败:', error)
     throw error
+  }
+}
+
+/**
+ * 处理获取通用配置的消息
+ */
+async function handleGetGeneralConfig(): Promise<Partial<GeneralConfig>> {
+  try {
+    const indexedDB = IndexedDBManager.getInstance()
+    await indexedDB.initialize()
+    const config = await indexedDB.getData(GENERAL_CONFIG_KEY, STORE_NAME) as GeneralConfig | undefined
+    return config || {}
+  } catch (error) {
+    logger.error('获取通用配置失败:', error)
+    return {}
   }
 }
 

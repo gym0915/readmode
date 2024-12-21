@@ -24,19 +24,30 @@ import type { IArticle } from '~/modules/reader/types/article.types'
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
 import { ReaderApp } from '../components/ReaderApp'
+import { IndexedDBManager } from '~/shared/utils/indexed-db'
 
 const logger = createLogger('reader-content')
+const GENERAL_CONFIG_KEY = "generalConfig"
+const STORE_NAME = "generalConfig"
+
+interface GeneralConfig {
+  theme: 'light' | 'dark'
+  autoSummary: boolean
+  language: 'zh' | 'en'
+}
 
 export class ReaderContentService {
   private frameService: ReaderFrameService
   private parserService: ArticleParserService
   private articleCache: ArticleCacheService
   private root: HTMLDivElement | null = null
+  private indexedDB: IndexedDBManager
 
   constructor() {
     this.frameService = new ReaderFrameService()
     this.parserService = new ArticleParserService()
     this.articleCache = new ArticleCacheService()
+    this.indexedDB = IndexedDBManager.getInstance()
   }
 
   /**
@@ -106,6 +117,27 @@ export class ReaderContentService {
   }
 
   /**
+   * 获取自动总结设置
+   */
+  private async getAutoSummaryEnabled(): Promise<boolean> {
+    try {
+      const response = await chrome.runtime.sendMessage({ 
+        type: 'GET_GENERAL_CONFIG' 
+      })
+      
+      if (response.error) {
+        throw new Error(response.error)
+      }
+      
+      logger.debug('获取到的配置:', response.data)
+      return response.data?.autoSummary ?? false
+    } catch (error) {
+      logger.error('获取自动总结设置失败:', error)
+      return false
+    }
+  }
+
+  /**
    * 处理内容解析请求
    */
   private async handleParseContent(sendResponse: (response: any) => void): Promise<void> {
@@ -118,6 +150,9 @@ export class ReaderContentService {
       const article = await this.parserService.parseDocument(document)
       const isReaderMode = this.frameService.toggleFrame(true)
       
+      // 获取自动总结设置
+      const autoSummaryEnabled = await this.getAutoSummaryEnabled()
+      
       // 创建并渲染 ReaderApp
       this.cleanupRoot()
       this.root = document.createElement('div')
@@ -125,13 +160,17 @@ export class ReaderContentService {
       document.body.appendChild(this.root)
       
       const reactRoot = createRoot(this.root)
-      reactRoot.render(React.createElement(ReaderApp, { article }))
+      reactRoot.render(React.createElement(ReaderApp, { 
+        article,
+        autoSummaryEnabled // 传递自动总结设置
+      }))
 
       logger.info('Content parsing completed:', {
         title: article.title,
         author: article.byline || 'Unknown',
         site: article.siteName,
         contentLength: article.content.length,
+        autoSummaryEnabled,
         timestamp: new Date().toISOString()
       })
 
@@ -155,7 +194,7 @@ export class ReaderContentService {
   /**
    * 处理阅读模式切换请求
    */
-  private handleToggleReaderMode(article: IArticle | null, sendResponse: (response: any) => void): void {
+  private async handleToggleReaderMode(article: IArticle | null, sendResponse: (response: any) => void): Promise<void> {
     try {
       logger.info('Toggling reader mode:', {
         title: article?.title ?? 'Unknown',
@@ -170,13 +209,18 @@ export class ReaderContentService {
         this.cleanupRoot()
       } else if (article) {
         // 仅在进入阅读模式且有文章数据时重新渲染
+        const autoSummaryEnabled = await this.getAutoSummaryEnabled()
+        
         this.cleanupRoot() // 先清理可能存在的旧实例
         this.root = document.createElement('div')
         this.root.id = 'reader-root'
         document.body.appendChild(this.root)
         
         const reactRoot = createRoot(this.root)
-        reactRoot.render(React.createElement(ReaderApp, { article }))
+        reactRoot.render(React.createElement(ReaderApp, { 
+          article,
+          autoSummaryEnabled 
+        }))
         
         logger.debug('Reader app re-rendered from cache')
       }

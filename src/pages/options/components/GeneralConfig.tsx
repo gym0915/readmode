@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { createLogger, ELogLevel } from "~/shared/utils/logger"
 import { IndexedDBManager } from "~/shared/utils/indexed-db"
 import { MessageHandler } from "~/shared/utils/message"
@@ -73,6 +73,28 @@ export const GeneralConfig: React.FC = () => {
     }
   }
 
+  // 修改自动总结设置的保存逻辑
+  const handleAutoSummaryChange = useCallback(async (enabled: boolean) => {
+    try {
+      setAutoSummary(enabled)
+      const config: GeneralConfig = {
+        theme: selectedTheme,
+        autoSummary: enabled,
+        language: selectedLanguage as 'zh' | 'en'
+      }
+      
+      const indexedDB = IndexedDBManager.getInstance()
+      await indexedDB.initialize()
+      await indexedDB.saveData(GENERAL_CONFIG_KEY, config, STORE_NAME)
+      
+      logger.debug('自动总结设置已保存', config)
+      messageHandler.success('设置已保存')
+    } catch (error) {
+      logger.error('保存自动总结设置失败:', error)
+      messageHandler.error('保存失败')
+    }
+  }, [selectedTheme, selectedLanguage])
+
   return (
     <div className="p-8 space-y-6">
       {/* 主题设置 */}
@@ -116,7 +138,7 @@ export const GeneralConfig: React.FC = () => {
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-500">{autoSummary ? '开启' : '关闭'}</span>
             <button
-              onClick={() => setAutoSummary(!autoSummary)}
+              onClick={() => handleAutoSummaryChange(!autoSummary)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
                 autoSummary ? 'bg-blue-600' : 'bg-gray-200'
               }`}
