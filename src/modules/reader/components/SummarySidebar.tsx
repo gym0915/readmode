@@ -169,11 +169,6 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           setIsConfigured(false);
           setIsLoading(false);
           logger.warn('LLM 模型未配置');
-          messageHandler.warningWithLink({
-            message: '请先完成 LLM 模型配置',
-            linkText: '前往配置',
-            onClick: handleOpenOptions
-          });
           return;
         }
 
@@ -309,6 +304,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
   return (
     <div className={styles.container} data-testid="summary-sidebar">
       <div className={styles.header}>
+        <h2 className={styles.title}>文章总结</h2>
         <button 
           className={styles.closeButton}
           onClick={onClose}
@@ -330,7 +326,6 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
             />
           </svg>
         </button>
-        <h2 className={styles.title}>文章总</h2>
       </div>
       <div className={styles.content}>
         {renderContent()}
