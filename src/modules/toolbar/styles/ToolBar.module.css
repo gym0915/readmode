@@ -34,23 +34,27 @@
   height: var(--toolbar-btn-size, 36px);
   padding: var(--toolbar-btn-padding, 8px);
   border-radius: 50%;
-  border: none;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   background: var(--toolbar-btn-bg, #fff);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
+  transition: none;
+}
+
+[data-theme="dark"] .toolbarButton {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .toolbarButton::after {
-  content: attr(title);
+  content: attr(data-tooltip);
   position: absolute;
   right: calc(100% + 12px);
   top: 50%;
-  transform: translateY(-50%) scale(0.8);
+  transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.75);
   color: white;
   padding: 6px 12px;
@@ -59,33 +63,31 @@
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
 }
 
 .toolbarButton:hover {
-  background: var(--toolbar-btn-hover-bg, #f8f9fa);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  background: var(--toolbar-btn-bg, #fff);
+  transform: none;
+  box-shadow: none;
 }
 
 .toolbarButton:hover::after {
   opacity: 1;
   visibility: visible;
-  transform: translateY(-50%) scale(1);
 }
 
 .toolbarButton:hover .toolbarIcon {
-  color: var(--toolbar-icon-hover-color, #1a73e8);
-  opacity: 1;
+  color: var(--toolbar-icon-color, #666);
+  opacity: 0.9;
 }
 
 .toolbarButton:active {
-  background: var(--toolbar-btn-active-bg, #f1f3f4);
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  background: var(--toolbar-btn-bg, #fff);
+  transform: none;
+  box-shadow: none;
 }
 
 .toolbarButton:active .toolbarIcon {
-  color: var(--toolbar-icon-active-color, #174ea6);
+  color: var(--toolbar-icon-color, #666);
 }

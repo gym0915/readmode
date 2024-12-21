@@ -27,15 +27,10 @@ const SummaryIcon: React.FC = () => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* 文档主体 */}
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-    {/* 折叠的角 */}
-    <path d="M14 2v6h6" />
-    {/* 缩略线条 */}
-    <line x1="8" y1="13" x2="16" y2="13" />
-    <line x1="8" y1="17" x2="14" y2="17" />
-    {/* 星标/重点标记 */}
-    <path d="M9.5 9l1 1 2-2" />
+    {/* 三条水平线代表文本概要 */}
+    <line x1="4" y1="6" x2="20" y2="6" />
+    <line x1="4" y1="12" x2="14" y2="12" />
+    <line x1="4" y1="18" x2="12" y2="18" />
   </svg>
 )
 
@@ -65,7 +60,7 @@ export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange
       className={styles.toolbarButton}
       onClick={handleClick}
       disabled={isLoading}
-      title="文章总结"
+      data-tooltip="文章总结"
     >
       <SummaryIcon />
     </button>

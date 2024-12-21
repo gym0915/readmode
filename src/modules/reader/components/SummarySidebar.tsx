@@ -14,6 +14,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { MessageService } from '~/core/services/message.service'
 import Typed from 'typed.js'
+import { icons } from '~/assets/icons'
 
 const logger = createLogger('SummarySidebar', ELogLevel.DEBUG)
 const messageHandler = MessageHandler.getInstance()
@@ -141,7 +142,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
             }
             setIsLoading(false);
             setIsStreaming(false);
-            logger.debug('响应完成，设置��结内容', {
+            logger.debug('响应完成，设置总结内容', {
               isStreaming,
               summaryContent: isStreaming ? accumulatedContent : summary
             });
@@ -233,7 +234,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
 
   // 渲染内容
   const renderContent = () => {
-    // 添加调试日志
+    // 添加试日志
     logger.debug('渲染状态:', {
       isLoading,
       hasError,
@@ -304,7 +305,17 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
   return (
     <div className={styles.container} data-testid="summary-sidebar">
       <div className={styles.header}>
-        <h2 className={styles.title}>文章总结</h2>
+        <div className={styles.headerLeft}>
+          <img 
+            src={icons['32']}
+            alt="Readfun Logo" 
+            className={styles.logo}
+            onError={(e) => {
+              console.error('Logo 加载失败', e);
+            }}
+          />
+          <h2 className={styles.title}>Readfun</h2>
+        </div>
         <button 
           className={styles.closeButton}
           onClick={onClose}

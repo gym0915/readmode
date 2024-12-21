@@ -45,7 +45,6 @@ ReadMode 是一个专注于提供优质阅读体验的 Chrome 扩展程序，它
   - CSS Modules：模块化样式隔离
 - **构建工具**：
   - Plasmo：Chrome 扩展开发框架
-  - Vite：开发构建工具
 
 ### 2. 存储方案
 - **本地存储**：

@@ -44,6 +44,8 @@
   },
   "manifest": {
     "manifest_version": 3,
+    "name": "Readfun",
+    "version": "1.0",
     "host_permissions": [
       "https://*/*"
     ],
