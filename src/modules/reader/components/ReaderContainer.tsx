@@ -18,12 +18,24 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ article }) => 
   const isToolbarVisible = useReaderStore((state) => state.isToolbarVisible)
   const toggleSummary = useReaderStore((state) => state.toggleSummary)
   const setToolbarVisible = useReaderStore((state) => state.setToolbarVisible)
+  const resetState = useReaderStore((state) => state.resetState)
   
   useEffect(() => {
     if (!isSummaryVisible) {
       setToolbarVisible(true)
     }
   }, [isSummaryVisible, setToolbarVisible])
+
+  useEffect(() => {
+    const handleResetState = () => {
+      resetState()
+    }
+    
+    document.addEventListener('RESET_READER_STATE', handleResetState)
+    return () => {
+      document.removeEventListener('RESET_READER_STATE', handleResetState)
+    }
+  }, [resetState])
 
   return (
     <div className={styles.reader_container}>

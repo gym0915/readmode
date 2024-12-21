@@ -7,6 +7,7 @@ interface ReaderState {
   toggleReaderMode: () => void
   toggleSummary: () => void
   setToolbarVisible: (visible: boolean) => void
+  resetState: () => void
 }
 
 export const useReaderStore = create<ReaderState>((set) => ({
@@ -16,7 +17,12 @@ export const useReaderStore = create<ReaderState>((set) => ({
   toggleReaderMode: () => set((state) => ({ isReaderMode: !state.isReaderMode })),
   toggleSummary: () => set((state) => ({ 
     isSummaryVisible: !state.isSummaryVisible,
-    isToolbarVisible: false // 打开summary时直接隐藏toolbar
+    isToolbarVisible: false
   })),
-  setToolbarVisible: (visible) => set({ isToolbarVisible: visible })
+  setToolbarVisible: (visible) => set({ isToolbarVisible: visible }),
+  resetState: () => set({
+    isReaderMode: false,
+    isSummaryVisible: false,
+    isToolbarVisible: true
+  })
 })) 

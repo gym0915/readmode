@@ -89,6 +89,7 @@ export class ReaderContentService {
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && this.frameService.isVisible()) {
         logger.debug('ESC key pressed, exiting reader mode')
+        this.resetReaderState()
         this.handleToggleReaderMode(null, () => {})
       }
     })
@@ -168,7 +169,7 @@ export class ReaderContentService {
         // 退出阅读模式时清理
         this.cleanupRoot()
       } else if (article) {
-        // 仅在进���阅读模式且有文章数据时重新渲染
+        // 仅在进入阅读模式且有文章数据时重新渲染
         this.cleanupRoot() // 先清理可能存在的旧实例
         this.root = document.createElement('div')
         this.root.id = 'reader-root'
@@ -201,5 +202,10 @@ export class ReaderContentService {
         error: String(error) 
       })
     }
+  }
+
+  private resetReaderState(): void {
+    const event = new CustomEvent('RESET_READER_STATE')
+    document.dispatchEvent(event)
   }
 } 
