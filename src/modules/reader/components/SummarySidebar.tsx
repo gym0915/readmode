@@ -363,6 +363,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
             onClick={handleRefresh}
             disabled={isLoading}
             aria-label="重新总结"
+            data-tooltip="重新总结"
           >
             <svg
               width="20"
@@ -389,7 +390,8 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           <button 
             className={styles.closeButton}
             onClick={onClose}
-            aria-label="关闭总结面板"
+            aria-label="关闭"
+            data-tooltip="关闭"
           >
             <svg
               width="20"

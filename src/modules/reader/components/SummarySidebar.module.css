@@ -55,6 +55,7 @@
   cursor: pointer;
   width: 36px;
   height: 36px;
+  position: relative;
 }
 
 .closeButton:hover {
@@ -387,6 +388,7 @@
   cursor: pointer;
   width: 36px;
   height: 36px;
+  position: relative;
 }
 
 .refreshButton:hover {
@@ -398,4 +400,53 @@
 .refreshButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 添加 tooltip 样式 */
+.refreshButton[data-tooltip],
+.closeButton[data-tooltip] {
+  &::before,
+  &::after {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.15s ease;
+  }
+
+  /* Tooltip 文本 */
+  &::before {
+    content: attr(data-tooltip);
+    z-index: 10;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    border-radius: 6px;
+    background-color: #1f2937;
+    color: white;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* Tooltip 箭头 */
+  &::after {
+    content: '';
+    z-index: 10;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-bottom-color: #1f2937;
+  }
+
+  &:hover::before,
+  &:hover::after {
+    opacity: 1;
+  }
+}
+
+/* 禁用状态下不显示 tooltip */
+.refreshButton:disabled[data-tooltip]::before,
+.refreshButton:disabled[data-tooltip]::after {
+  display: none;
 }
