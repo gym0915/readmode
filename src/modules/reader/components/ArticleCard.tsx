@@ -4,7 +4,7 @@ import type { IArticle } from '../types/article.types'
 import { ToolBar } from '../../toolbar/components/ToolBar'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import '../../llm/styles/message.css'
+import '~/shared/styles/toast.css'
 
 interface ArticleCardProps {
   article: IArticle

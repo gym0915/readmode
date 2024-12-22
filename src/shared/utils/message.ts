@@ -4,6 +4,7 @@ import type { ToastOptions, Theme, TypeOptions } from 'react-toastify'
 import React, { type ReactNode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import 'react-toastify/dist/ReactToastify.css'
+import '../styles/toast.css'
 
 /**
  * 消息类型枚举
@@ -342,7 +343,7 @@ export class MessageHandler {
       } else if (error instanceof SyntaxError) {
         this.error('数据据格式错误，请检查输')
       } else if (error.name === 'NetworkError' || error.message.includes('network')) {
-        this.error('网络连接失败，请检查网络设置')
+        this.error('���络连接失败，请检查网络设置')
       } else if (error.message.toLowerCase().includes('api key')) {
         this.error('API Key 无效或已过期')
       } else if (error.message.toLowerCase().includes('url')) {
