@@ -1,4 +1,4 @@
-import { createLogger } from '~/shared/utils/logger'
+import { Logger } from '../utils/logger'
 import type { ILLMProvider, ILLMProviderConfig, LLMProviderType } from '../types/provider'
 import type { IModelInfo, IChatResponse, IChatStreamResponse } from '../types'
 
@@ -6,7 +6,7 @@ import type { IModelInfo, IChatResponse, IChatStreamResponse } from '../types'
  * OpenAI Provider 实现类
  */
 export class OpenAIProvider implements ILLMProvider {
-  private readonly logger = createLogger('OpenAIProvider')
+  private readonly logger = Logger.getInstance('OpenAIProvider')
 
   getType(): LLMProviderType {
     return 'openai'

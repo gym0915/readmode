@@ -1,4 +1,4 @@
-import { createLogger } from '~/shared/utils/logger'
+import { Logger } from '../utils/logger'
 import type { LLMProviderType } from '../types/provider'
 import { OpenAIProvider } from './openai.provider'
 import { GoogleProvider } from './google.provider'
@@ -9,7 +9,7 @@ import { GoogleProvider } from './google.provider'
  */
 export class LLMProviderFactory {
   private static instance: LLMProviderFactory
-  private readonly logger = createLogger('LLMProviderFactory')
+  private readonly logger = Logger.getInstance('LLMProviderFactory')
   private readonly providers: Map<LLMProviderType, OpenAIProvider | GoogleProvider>
 
   private constructor() {

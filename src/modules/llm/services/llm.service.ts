@@ -1,4 +1,4 @@
-import { createLogger } from '~/shared/utils/logger'
+import { Logger } from '../utils/logger'
 import type { 
   ILLMConfig, 
   IModelsResponse, 
@@ -16,7 +16,7 @@ import type { LLMProviderType } from '../types/provider'
  */
 export class LLMService {
   private config: ILLMConfig & { provider: LLMProviderType }
-  private readonly logger = createLogger('LLMService')
+  private readonly logger = Logger.getInstance('LLMService')
   private static instance: LLMService | null = null
   private readonly providerFactory = LLMProviderFactory.getInstance()
 
@@ -43,7 +43,12 @@ export class LLMService {
 
     if (!this.config.apiKey) {
       const error = new Error('API Key is required')
-      this.logger.error('验证失败: API Key 缺失')
+      this.logger.error('验证失败: API Key 缺失', { 
+        error: {
+          message: error.message,
+          stack: error.stack
+        }
+      })
       throw error
     }
 
@@ -58,7 +63,13 @@ export class LLMService {
     try {
       new URL(this.config.baseUrl)
     } catch (error) {
-      this.logger.error('验证失败: Base URL 格式无效', { baseUrl: this.config.baseUrl })
+      this.logger.error('验证失败: Base URL 格式无效', { 
+        baseUrl: this.config.baseUrl,
+        error: error instanceof Error ? {
+          message: error.message,
+          stack: error.stack
+        } : String(error)
+      })
       throw new Error('Invalid Base URL format')
     }
 
@@ -82,7 +93,12 @@ export class LLMService {
         data: models
       }
     } catch (error) {
-      this.logger.error('验证失败', error)
+      this.logger.error('验证失败', { 
+        error: error instanceof Error ? {
+          message: error.message,
+          stack: error.stack
+        } : String(error)
+      })
       throw error
     }
   }
@@ -118,7 +134,10 @@ export class LLMService {
       // 如果验证失败，恢复旧配置
       this.config = oldConfig
       this.logger.error('配置更新失败，已恢复原配置', { 
-        error: error instanceof Error ? error.message : error 
+        error: error instanceof Error ? {
+          message: error.message,
+          stack: error.stack
+        } : String(error)
       })
       throw error
     }
@@ -148,18 +167,33 @@ export class LLMService {
             try {
               await writer.write(chunk)
             } catch (error) {
-              this.logger.error('写入流数据失败', error)
+              this.logger.error('写入流数据失败', {
+                error: error instanceof Error ? {
+                  message: error.message,
+                  stack: error.stack
+                } : String(error)
+              })
             }
           },
           async (error) => {
-            this.logger.error('流式对话发生错误', error)
+            this.logger.error('流式对话发生错误', {
+              error: error instanceof Error ? {
+                message: error.message,
+                stack: error.stack
+              } : String(error)
+            })
             await writer.abort(error)
           },
           async () => {
             try {
               await writer.close()
             } catch (error) {
-              this.logger.error('关闭流失败', error)
+              this.logger.error('关闭流失败', {
+                error: error instanceof Error ? {
+                  message: error.message,
+                  stack: error.stack
+                } : String(error)
+              })
             }
           }
         )
@@ -176,7 +210,12 @@ export class LLMService {
         )
       }
     } catch (error) {
-      this.logger.error('对话请求失败', error)
+      this.logger.error('对话请求失败', {
+        error: error instanceof Error ? {
+          message: error.message,
+          stack: error.stack
+        } : String(error)
+      })
       throw error
     }
   }
@@ -205,7 +244,12 @@ export class LLMService {
         onComplete
       )
     } catch (error) {
-      this.logger.error('流式对话请求失败', error)
+      this.logger.error('流式对话请求失败', {
+        error: error instanceof Error ? {
+          message: error.message,
+          stack: error.stack
+        } : String(error)
+      })
       throw error
     }
   }

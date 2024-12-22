@@ -1,4 +1,4 @@
-import { createLogger } from '~/shared/utils/logger'
+import { Logger } from '../utils/logger'
 import type { ILLMProvider, ILLMProviderConfig, LLMProviderType } from '../types/provider'
 import type { IModelInfo, IChatResponse, IChatStreamResponse } from '../types'
 
@@ -6,7 +6,7 @@ import type { IModelInfo, IChatResponse, IChatStreamResponse } from '../types'
  * Google Provider 实现类
  */
 export class GoogleProvider implements ILLMProvider {
-  private readonly logger = createLogger('GoogleProvider')
+  private readonly logger = Logger.getInstance('GoogleProvider')
 
   getType(): LLMProviderType {
     return 'google'
