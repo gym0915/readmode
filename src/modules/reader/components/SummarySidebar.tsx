@@ -195,7 +195,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
     } catch (error) {
       logger.error('检查配置失败:', error);
       setHasError(true);
-      setErrorMessage('检查配置失败，请稍后重试');
+      setErrorMessage('配置检查失败');
       setIsLoading(false);
       return;
     } finally {
@@ -227,11 +227,20 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
 
   // 1. 添加一个新的处理函数
   const handleOpenOptions = useCallback(() => {
-    // 发送消息给 background script，指定要打开的标签页
-    chrome.runtime.sendMessage({ 
-      type: 'OPEN_OPTIONS_PAGE',
-      data: { tab: 'llm' }
-    });
+    try {
+      chrome.runtime.sendMessage({ 
+        type: 'OPEN_OPTIONS_PAGE',
+        data: { tab: 'llm' }
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          logger.error('打开配置页面失败:', chrome.runtime.lastError);
+          messageHandler.error('打开配置页面失败');
+        }
+      });
+    } catch (error) {
+      logger.error('发送消息失败:', error);
+      messageHandler.error('打开配置页面失败');
+    }
   }, []);
 
   // 添加重新总结的处理函数
@@ -281,17 +290,20 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
       return (
         <div className={styles.error}>
           <p>{errorMessage}</p>
-          {errorMessage.includes('配置') && (
+          <div className={styles.buttonGroup}>
             <button 
               onClick={handleOpenOptions}
               className={styles.configButton}
             >
               前往配置
             </button>
-          )}
-          <button onClick={resetError} className={styles.retryButton}>
-            重试
-          </button>
+            <button 
+              onClick={handleRefresh} 
+              className={styles.retryButton}
+            >
+              重试
+            </button>
+          </div>
         </div>
       )
     }
