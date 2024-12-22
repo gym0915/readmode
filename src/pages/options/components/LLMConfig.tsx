@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from "react"
 import type { IModelInfo } from "~/modules/llm/types"
-import { createLogger, ELogLevel } from "~/shared/utils/logger"
+import { createLogger } from "~/shared/utils/logger"
 import { MessageHandler } from "~/shared/utils/message"
 import { LLMService } from "~/modules/llm"
 import { CryptoManager } from "~/shared/utils/crypto-manager"
 import { IndexedDBManager } from "~/shared/utils/indexed-db"
+import { LLMProviderFactory } from "~/modules/llm/providers/provider.factory"
+import type { LLMProviderType } from "~/modules/llm/types/provider"
 
 // 常量定义
 const MODEL_DATA_KEY = "modelData"
 const STORAGE_CONFIG_KEY = "llmConfig"
 
-// 添加模型提供商类型
-type ModelProvider = 'openai' | 'google'
-
 interface ILLMConfigState {
-  provider: ModelProvider
+  provider: LLMProviderType
   apiKey: string
   baseUrl: string
   model?: string
@@ -24,11 +23,13 @@ interface IModelData {
   selectedModel: string
   modelList: IModelInfo[]
   language: 'zh' | 'en'
+  provider: LLMProviderType
 }
 
 // 创建日志记录器和消息处理器
-const logger = createLogger('LLMConfig', ELogLevel.DEBUG)
+const logger = createLogger('LLMConfig')
 const messageHandler = MessageHandler.getInstance()
+const providerFactory = LLMProviderFactory.getInstance()
 
 export const LLMConfig: React.FC = () => {
   // 状态管理
@@ -40,7 +41,7 @@ export const LLMConfig: React.FC = () => {
   const [models, setModels] = useState<IModelInfo[]>([])
   const [showApiKey, setShowApiKey] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState<'zh' | 'en'>('zh')
-  const [selectedProvider, setSelectedProvider] = useState<ModelProvider>('openai')
+  const [selectedProvider, setSelectedProvider] = useState<LLMProviderType>('openai')
 
   /**
    * 加载已保存的配置
@@ -58,10 +59,12 @@ export const LLMConfig: React.FC = () => {
         setModels(modelData.modelList)
         setSelectedModel(modelData.selectedModel)
         setSelectedLanguage(modelData.language ?? 'zh')
+        setSelectedProvider(modelData.provider ?? 'openai')
         logger.debug('已从 IndexedDB 加载模型数据', { 
           modelCount: modelData.modelList.length,
           selectedModel: modelData.selectedModel,
-          language: modelData.language
+          language: modelData.language,
+          provider: modelData.provider
         })
       }
 
@@ -70,7 +73,8 @@ export const LLMConfig: React.FC = () => {
       if (result[STORAGE_CONFIG_KEY]) {
         const { 
           apiKey: encryptedApiKey, 
-          baseUrl: encryptedBaseUrl
+          baseUrl: encryptedBaseUrl,
+          provider = 'openai'
         } = result[STORAGE_CONFIG_KEY]
         
         // 初始化加密管理器并解密数据
@@ -82,7 +86,12 @@ export const LLMConfig: React.FC = () => {
         
         setApiKey(savedApiKey)
         setBaseUrl(savedBaseUrl)
-        logger.debug('已加载加密配置')
+        setSelectedProvider(provider)
+        logger.debug('已加载加密配置', {
+          hasApiKey: !!savedApiKey,
+          hasBaseUrl: !!savedBaseUrl,
+          provider
+        })
       }
     } catch (err) {
       messageHandler.handleError(err, '加载配置失败')
@@ -97,6 +106,14 @@ export const LLMConfig: React.FC = () => {
   }, [])
 
   /**
+   * 当切换 Provider 时，重置 baseUrl 默认值
+   */
+  useEffect(() => {
+    const provider = providerFactory.getProvider(selectedProvider)
+    setBaseUrl(provider.getDefaultBaseUrl())
+  }, [selectedProvider])
+
+  /**
    * 验证配置并获取模型列表
    */
   const handleValidate = async () => {
@@ -105,6 +122,7 @@ export const LLMConfig: React.FC = () => {
 
     try {
       const llmService = new LLMService({
+        provider: selectedProvider,
         apiKey,
         baseUrl
       })
@@ -125,7 +143,7 @@ export const LLMConfig: React.FC = () => {
         logger.debug('自动选择默认模型', { model: response.data[0].id })
       }
 
-      messageHandler.success('验证成功，已获取可模型')
+      messageHandler.success('验证成功，已获取可用模型')
     } catch (err) {
       messageHandler.handleError(err, '验证失败')
       setModels([])
@@ -149,7 +167,8 @@ export const LLMConfig: React.FC = () => {
       await indexedDB.saveData(MODEL_DATA_KEY, {
         selectedModel,
         modelList: models,
-        language: selectedLanguage
+        language: selectedLanguage,
+        provider: selectedProvider
       })
       logger.debug('模型数据已保存到 IndexedDB')
 
@@ -194,11 +213,11 @@ export const LLMConfig: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* 添加模型提供商选择 */}
+    <div className="space-y-6 p-6">
+      {/* Provider 选择 */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">
-          模型提供商
+          AI Provider
         </label>
         <div className="grid grid-cols-2 gap-4">
           <button
@@ -210,7 +229,7 @@ export const LLMConfig: React.FC = () => {
             }`}
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.8956zm16.0993 3.8558L12.6 8.3829 14.6201 7.2144a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.4047-.6813zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/>
+              <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/>
             </svg>
             <span className="text-sm font-medium">OpenAI</span>
           </button>
@@ -236,29 +255,29 @@ export const LLMConfig: React.FC = () => {
       {/* API Key 输入框 */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">
-          API KEY
+          API Key
         </label>
-        <div className="relative group">
+        <div className="relative">
           <input
             type={showApiKey ? "text" : "password"}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-            placeholder="请输入 API Key"
+            placeholder={`请输入 ${selectedProvider === 'openai' ? 'OpenAI' : 'Google'} API Key`}
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
           />
           <button
             type="button"
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+            className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
             onClick={() => setShowApiKey(!showApiKey)}
           >
             {showApiKey ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
               </svg>
             ) : (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
             )}
           </button>
@@ -274,7 +293,7 @@ export const LLMConfig: React.FC = () => {
           <input
             type="text"
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-            placeholder="请输入 Base URL"
+            placeholder={`请输入 Base URL`}
             value={baseUrl}
             onChange={(e) => setBaseUrl(e.target.value)}
           />

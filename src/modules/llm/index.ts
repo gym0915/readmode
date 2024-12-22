@@ -1,4 +1,6 @@
 export * from './services/llm.service'
 export * from './types'
+export * from './types/provider'
+export * from './providers/provider.factory'
 export * from './constants'
-export { Logger } from './utils/logger' 
+export { createLogger as Logger } from '~/shared/utils/logger' 
