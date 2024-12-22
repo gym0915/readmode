@@ -233,7 +233,8 @@ async function handleChatRequest(message: ChatRequestMessage): Promise<ChatRespo
       baseUrl: allConfig.baseUrl,
       model: allConfig.selectedModel,
       language: allConfig.language,
-      streaming: allConfig.streaming
+      streaming: allConfig.streaming,
+      provider: allConfig.provider
     })
 
     // 打印请求参数（排除敏感信息）

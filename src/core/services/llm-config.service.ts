@@ -44,14 +44,16 @@ export class LLMConfigService {
       // 3. 合并配置
       const config = {
         ...storageConfig,
-        selectedModel: modelData?.selectedModel
+        selectedModel: modelData?.selectedModel,
+        provider: modelData?.provider || 'openai'
       }
 
       // 4. 验证配置是否完整
       const isConfigured = !!(
         config.baseUrl &&
         config.apiKey &&
-        config.selectedModel
+        config.selectedModel &&
+        config.provider
       )
 
       return {
@@ -131,7 +133,8 @@ export class LLMConfigService {
         selectedModel: modelData?.selectedModel,
         modelList: modelData?.modelList || [],
         streaming: modelData?.streaming || false,
-        language: modelData?.language || 'zh'
+        language: modelData?.language || 'zh',
+        provider: modelData?.provider || 'openai'
       }
 
       logger.info('获取完整LLM配置成功', {
@@ -140,7 +143,8 @@ export class LLMConfigService {
         selectedModel: fullConfig.selectedModel,
         modelCount: fullConfig.modelList.length,
         streaming: fullConfig.streaming,
-        language: fullConfig.language
+        language: fullConfig.language,
+        provider: fullConfig.provider
       })
 
       return fullConfig
