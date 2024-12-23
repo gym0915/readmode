@@ -86,9 +86,9 @@ export const GeneralConfig: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {/* 主题设置 */}
-      <div className="space-y-4">
+    <div className="space-y-4 p-4">
+      {/* 主题设置 - 添加 hidden 类隐藏元素 */}
+      <div className="hidden space-y-4">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             主题设置
@@ -118,8 +118,8 @@ export const GeneralConfig: React.FC = () => {
         </div>
       </div>
 
-      {/* 自动总结设置 */}
-      <div className="space-y-4">
+      {/* 自动总结设置 - 减小与上方的间距 */}
+      <div className="space-y-3">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             自动总结
@@ -145,8 +145,8 @@ export const GeneralConfig: React.FC = () => {
         </div>
       </div>
 
-      {/* 语言设置 */}
-      <div className="space-y-4">
+      {/* 语言设置 - 减小与自动总结的间距 */}
+      <div className="space-y-3 mt-2">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             语言设置
@@ -174,8 +174,8 @@ export const GeneralConfig: React.FC = () => {
         </div>
       </div>
 
-      {/* 保存按钮 */}
-      <div className="pt-4">
+      {/* 保存按钮 - 调整上边距 */}
+      <div className="pt-3">
         <button
           className={`w-full px-4 py-2.5 rounded-lg font-medium text-white 
             ${isSaving ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} 
