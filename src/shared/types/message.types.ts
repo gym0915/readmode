@@ -185,7 +185,7 @@ export type Message =
   | GetLLMConfigResponse
   | ThemeMessage
 
-import type { IThemeConfig } from './theme'
+import type { IThemeConfig } from '../../types/theme'
 
 export interface ThemeMessage {
   type: 'THEME_CHANGED'
