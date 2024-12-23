@@ -328,7 +328,7 @@ export const LLMConfig: React.FC = () => {
             />
             {selectedProvider === 'openai' && (
               <p className="text-sm text-gray-500 dark:text-gray-400 px-1">
-                默认 https://api.openai.com/v1
+                默认https://api.openai.com/v1,支持 OpenAI 通用接口的第三方服务商
               </p>
             )}
           </div>
