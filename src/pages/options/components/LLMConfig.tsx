@@ -110,8 +110,36 @@ export const LLMConfig: React.FC = () => {
    */
   useEffect(() => {
     const provider = providerFactory.getProvider(selectedProvider)
-    setBaseUrl(provider.getDefaultBaseUrl())
-  }, [selectedProvider])
+    
+    // Google 供应商时始终使用默认地址
+    if (selectedProvider === 'google') {
+      setBaseUrl(provider.getDefaultBaseUrl())
+      return
+    }
+    
+    // OpenAI 供应商时，如果没有保存的地址，则使用默认地址
+    if (selectedProvider === 'openai') {
+      // 从 storage 中获取保存的配置
+      chrome.storage.local.get(STORAGE_CONFIG_KEY).then(async (result) => {
+        if (result[STORAGE_CONFIG_KEY]?.baseUrl) {
+          // 如果有保存的地址，解密并使用
+          const cryptoManager = CryptoManager.getInstance()
+          await cryptoManager.initialize()
+          const savedBaseUrl = await cryptoManager.decrypt(result[STORAGE_CONFIG_KEY].baseUrl)
+          if (savedBaseUrl) {
+            setBaseUrl(savedBaseUrl)
+            return
+          }
+        }
+        // 如果没有保存的地址，使用默认地址
+        setBaseUrl(provider.getDefaultBaseUrl())
+      }).catch((err) => {
+        logger.error('获取保存的配置失败', err)
+        // 出错时使用默认地址
+        setBaseUrl(provider.getDefaultBaseUrl())
+      })
+    }
+  }, [selectedProvider]) // 移除 baseUrl 依赖，避免循环
 
   /**
    * 验证配置并获取模型列表
@@ -161,7 +189,7 @@ export const LLMConfig: React.FC = () => {
     setIsSaving(true)
 
     try {
-      // 保存模型数据到 IndexedDB
+      // 存模型数���到 IndexedDB
       const indexedDB = IndexedDBManager.getInstance()
       await indexedDB.initialize()
       await indexedDB.saveData(MODEL_DATA_KEY, {
@@ -216,9 +244,9 @@ export const LLMConfig: React.FC = () => {
     <div className="space-y-6 p-6">
       {/* Provider 选择 */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-          AI Provider
-        </label>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          模型服务商
+        </h2>
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setSelectedProvider('openai')}
@@ -254,9 +282,9 @@ export const LLMConfig: React.FC = () => {
 
       {/* API Key 输入框 */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-          API Key
-        </label>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          密钥设置
+        </h2>
         <div className="relative">
           <input
             type={showApiKey ? "text" : "password"}
@@ -287,16 +315,23 @@ export const LLMConfig: React.FC = () => {
       {/* Base URL 输入框和验证按钮 */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-            Base URL
-          </label>
-          <input
-            type="text"
-            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100"
-            placeholder="请输入 Base URL"
-            value={baseUrl}
-            onChange={(e) => setBaseUrl(e.target.value)}
-          />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            接口地址
+          </h2>
+          <div className="space-y-1">
+            <input
+              type="text"
+              className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100"
+              placeholder="请输入 Base URL"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+            />
+            {selectedProvider === 'openai' && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 px-1">
+                默认 https://api.openai.com/v1
+              </p>
+            )}
+          </div>
         </div>
         
         {/* 验证按钮 */}
@@ -323,9 +358,9 @@ export const LLMConfig: React.FC = () => {
       {/* 模型选择下拉框 */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-            Model
-          </label>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            模型选择
+          </h2>
           <select
             className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100"
             value={selectedModel}
@@ -342,9 +377,9 @@ export const LLMConfig: React.FC = () => {
 
         {/* 语言设置 */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             返回语言
-          </label>
+          </h2>
           <div className="space-y-2">
             <label className="flex items-center space-x-3">
               <input
