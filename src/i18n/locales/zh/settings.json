@@ -1,0 +1,80 @@
+{
+  "title": "设置",
+  "tabs": {
+    "general": {
+      "name": "通用",
+      "description": "管理您的通用配置"
+    },
+    "model": {
+      "name": "模型",
+      "description": "管理您的模型配置",
+      "provider": {
+        "label": "模型服务商",
+        "options": {
+          "openai": "OpenAI",
+          "google": "Google"
+        }
+      },
+      "apiKey": {
+        "label": "密钥设置",
+        "placeholder": "请输入您的 API 密钥",
+        "toggle": {
+          "show": "显示",
+          "hide": "隐藏"
+        }
+      },
+      "baseUrl": {
+        "label": "接口地址",
+        "placeholder": "请输入 API 接口地址",
+        "hint": "默认https://api.openai.com/v1,支持 OpenAI 通用接口的第三方服务商"
+      },
+      "modelSelect": {
+        "label": "模型选择",
+        "placeholder": "请选择模型"
+      },
+      "language": {
+        "label": "返回语言",
+        "options": {
+          "zh": "中文",
+          "en": "英文"
+        }
+      },
+      "actions": {
+        "validate": "验证",
+        "save": "保存",
+        "saving": "保存中...",
+        "validating": "验证中..."
+      },
+      "messages": {
+        "validateSuccess": "验证成功，已获取可用模型",
+        "validateFailed": "验证失败",
+        "saveSuccess": "配置保存成功",
+        "saveFailed": "保存失败",
+        "noModels": "未获取到可用模型，请检查配置"
+      }
+    }
+  },
+  "general": {
+    "language": {
+      "label": "语言",
+      "options": {
+        "zh": "中文",
+        "en": "英文"
+      }
+    },
+    "theme": {
+      "label": "主题",
+      "options": {
+        "light": "浅色",
+        "dark": "深色",
+        "system": "跟随系统"
+      }
+    },
+    "autoSummary": {
+      "label": "自动总结",
+      "description": "自动总结文章内容",
+      "on": "开启",
+      "off": "关闭"
+    }
+  }
+} 

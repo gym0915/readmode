@@ -9,6 +9,8 @@ import { LLMService } from '~/modules/llm'
 import { decryptText } from '~/shared/utils/crypto'
 import { CryptoManager } from "~/shared/utils/crypto-manager"
 import { IndexedDBManager } from '~/shared/utils/indexed-db'
+import '~/i18n/config'
+import i18n from '~/i18n/config'
 
 const logger = createLogger("background")
 const iconManager = new IconManagerService()
@@ -43,14 +45,33 @@ interface GeneralConfig {
   language: 'zh' | 'en'
 }
 
+// 从 IndexedDB 加载语言设置
+const loadLanguageConfig = async () => {
+  try {
+    const indexedDB = IndexedDBManager.getInstance()
+    await indexedDB.initialize()
+    const config = await indexedDB.getData(GENERAL_CONFIG_KEY, STORE_NAME) as GeneralConfig | undefined
+    
+    if (config && config.language) {
+      await i18n.changeLanguage(config.language)
+      logger.debug('已加载语言配置:', config.language)
+    }
+  } catch (error) {
+    logger.error('加载语言配置失败:', error)
+  }
+}
+
 // 初始化所有功能
 const initializeFeatures = async () => {
   try {
+    // 初始化语言配置
+    await loadLanguageConfig()
+
     // 初始化右键菜单
     if (chrome.contextMenus) {
       chrome.contextMenus.create({
         id: 'options',
-        title: '选项',
+        title: i18n.t('settings:title'),
         contexts: ['action']
       }, () => {
         const error = chrome.runtime.lastError
@@ -366,7 +387,7 @@ async function prepareMessages(message: ChatRequestMessage, config: any) {
         content: `你是一个专业的文章总结助手。你的任务是:
 1. 提取文章的核心信息,包括:
    - 主要事件和人物
-   - 关��时间和地点
+   - 关时间和地点
    - 事件的起因、经过和结果
    - 重要影响和意义
 2. 生成一个结构清晰的总结:
@@ -414,7 +435,7 @@ async function handleGetLLMConfig(): Promise<GetLLMConfigResponse> {
   try {
     const { config } = await llmConfigService.checkConfig()
     if (!config) {
-      throw new Error('��找到LLM配置')
+      throw new Error('找到LLM配置')
     }
 
     // 打印配置信息
@@ -439,17 +460,17 @@ async function handleGetLLMConfig(): Promise<GetLLMConfigResponse> {
 }
 
 /**
- * 处理获取通用配置的消息
+ * 处理获取通用配置的请求
  */
-async function handleGetGeneralConfig(): Promise<Partial<GeneralConfig>> {
+async function handleGetGeneralConfig() {
   try {
     const indexedDB = IndexedDBManager.getInstance()
     await indexedDB.initialize()
-    const config = await indexedDB.getData(GENERAL_CONFIG_KEY, STORE_NAME) as GeneralConfig | undefined
-    return config || {}
+    const config = await indexedDB.getData(GENERAL_CONFIG_KEY, STORE_NAME)
+    return config
   } catch (error) {
     logger.error('获取通用配置失败:', error)
-    return {}
+    throw error
   }
 }
 

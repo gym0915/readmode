@@ -4,6 +4,7 @@ import { GeneralConfig } from "~/pages/options/components/GeneralConfig"
 import logo from "data-base64:~/assets/icons/logo.svg"
 import { IconRobot, IconSettings } from "@tabler/icons-react"
 import { useTheme } from "../../shared/hooks/useTheme"
+import { useI18n } from "../../i18n/hooks/useI18n"
 
 // 定义导航项接口
 interface NavItem {
@@ -16,17 +17,19 @@ interface NavItem {
 const Options: React.FC = () => {
   // 使用主题hook
   useTheme();
+  // 使用 i18n hook
+  const { t } = useI18n();
 
   const navItems: NavItem[] = [
     {
       id: "general",
-      name: "通用",
+      name: t('settings:tabs.general.name'),
       icon: <IconSettings className="w-6 h-6" />,
       component: <GeneralConfig />
     },
     {
       id: "model",
-      name: "模型",
+      name: t('settings:tabs.model.name'),
       icon: <IconRobot className="w-6 h-6" />,
       component: <LLMConfig />
     }
@@ -64,9 +67,9 @@ const Options: React.FC = () => {
             <div className="w-64 border-r border-gray-200 dark:border-gray-700">
               {/* Logo 区域 */}
               <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700">
-                <img src={logo} alt="Logo" className="w-8 h-8 mr-3" />
+                <img src={logo} alt={t('app:name')} className="w-8 h-8 mr-3" />
                 <span className="text-xl font-semibold text-gray-900 dark:text-white">
-                  设置
+                  {t('settings:title')}
                 </span>
               </div>
 
@@ -95,10 +98,10 @@ const Options: React.FC = () => {
                 {/* 标题区域 */}
                 <div className="mb-8">
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {navItems.find((item) => item.id === activeTab)?.name}设置
+                    {t(`settings:tabs.${activeTab}.name`)}
                   </h1>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    管理您的{navItems.find((item) => item.id === activeTab)?.name}配置
+                    {t(`settings:tabs.${activeTab}.description`)}
                   </p>
                 </div>
 

@@ -4,6 +4,7 @@ import { createLogger } from '../../../shared/utils/logger'
 import { MessageHandler } from '../../../shared/utils/message'
 import { GENERAL_CONFIG_KEY, STORE_NAME } from '../../../shared/constants/storage'
 import { useTheme } from '../../../shared/hooks/useTheme'
+import { useI18n } from '../../../i18n/hooks/useI18n'
 import { EThemeMode } from '../../../types/theme'
 import { DARK_THEME, LIGHT_THEME } from '../../../shared/constants/theme'
 
@@ -19,8 +20,9 @@ interface GeneralConfig {
 export const GeneralConfig: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [autoSummary, setAutoSummary] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState('zh')
   const { theme, setTheme } = useTheme()
+  const { t, changeLanguage, currentLanguage } = useI18n()
+  const [selectedLanguage, setSelectedLanguage] = useState(currentLanguage || 'zh')
 
   // 加载非主题配置
   useEffect(() => {
@@ -33,6 +35,7 @@ export const GeneralConfig: React.FC = () => {
         if (savedConfig) {
           setAutoSummary(savedConfig.autoSummary)
           setSelectedLanguage(savedConfig.language)
+          await changeLanguage(savedConfig.language)
           logger.debug('已加载通用配置', savedConfig)
         }
       } catch (error) {
@@ -64,10 +67,13 @@ export const GeneralConfig: React.FC = () => {
       await indexedDB.saveData(GENERAL_CONFIG_KEY, config, STORE_NAME)
       logger.debug('数据已保存到 IndexedDB')
 
-      messageHandler.success('设置已保存')
+      // 切换语言
+      await changeLanguage(selectedLanguage)
+
+      messageHandler.success(t('messages.success'))
     } catch (error) {
       logger.error('保存通用配置失败:', error)
-      messageHandler.error('保存失败')
+      messageHandler.error(t('messages.error'))
     } finally {
       setIsSaving(false)
       logger.debug('保存流程结束')
@@ -77,12 +83,17 @@ export const GeneralConfig: React.FC = () => {
   // 处理主题切换
   const handleThemeChange = (newTheme: typeof LIGHT_THEME | typeof DARK_THEME) => {
     setTheme(newTheme)
-    messageHandler.success('主题已更新')
+    messageHandler.success(t('messages.success'))
   }
 
   // 修改自动总结设置的保存逻辑
   const handleAutoSummaryChange = (value: boolean) => {
     setAutoSummary(value)
+  }
+
+  // 处理语言切换
+  const handleLanguageChange = async (lang: 'zh' | 'en') => {
+    setSelectedLanguage(lang)
   }
 
   return (
@@ -91,7 +102,7 @@ export const GeneralConfig: React.FC = () => {
       <div className="hidden space-y-4">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            主题设置
+            {t('settings:general.theme.label')}
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <button
@@ -102,7 +113,7 @@ export const GeneralConfig: React.FC = () => {
                   : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
               }`}
             >
-              <span className="text-sm font-medium">日间模式</span>
+              <span className="text-sm font-medium">{t('settings:general.theme.options.light')}</span>
             </button>
             <button
               onClick={() => handleThemeChange(DARK_THEME)}
@@ -112,7 +123,7 @@ export const GeneralConfig: React.FC = () => {
                   : 'border-gray-200 dark:border-gray-700 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white'
               }`}
             >
-              <span className="text-sm font-medium">夜间模式</span>
+              <span className="text-sm font-medium">{t('settings:general.theme.options.dark')}</span>
             </button>
           </div>
         </div>
@@ -122,12 +133,14 @@ export const GeneralConfig: React.FC = () => {
       <div className="space-y-3">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            自动总结
+            {t('settings:general.autoSummary.label')}
           </h2>
           <div className="flex items-center justify-between px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-            <span className="text-sm text-gray-700 dark:text-gray-300">自动总结文章内容</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">{t('settings:general.autoSummary.description')}</span>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">{autoSummary ? '开启' : '关闭'}</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {autoSummary ? t('settings:general.autoSummary.on') : t('settings:general.autoSummary.off')}
+              </span>
               <button
                 onClick={() => handleAutoSummaryChange(!autoSummary)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
@@ -149,26 +162,30 @@ export const GeneralConfig: React.FC = () => {
       <div className="space-y-3 mt-2">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            语言设置
+            {t('settings:general.language.label')}
           </h2>
           <div className="space-y-2">
             <label className="flex items-center space-x-3">
               <input
                 type="radio"
                 checked={selectedLanguage === 'zh'}
-                onChange={() => setSelectedLanguage('zh')}
+                onChange={() => handleLanguageChange('zh')}
                 className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">中文</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                {t('settings:general.language.options.zh')}
+              </span>
             </label>
             <label className="flex items-center space-x-3">
               <input
                 type="radio"
                 checked={selectedLanguage === 'en'}
-                onChange={() => setSelectedLanguage('en')}
+                onChange={() => handleLanguageChange('en')}
                 className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">English</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                {t('settings:general.language.options.en')}
+              </span>
             </label>
           </div>
         </div>
@@ -190,9 +207,9 @@ export const GeneralConfig: React.FC = () => {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span>保存中...</span>
+              <span>{t('messages.loading')}</span>
             </div>
-          ) : '保存设置'}
+          ) : t('actions.save')}
         </button>
       </div>
     </div>

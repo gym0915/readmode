@@ -17,12 +17,15 @@ importers:
       '@tailwindcss/typography':
         specifier: ^0.5.10
         version: 0.5.15(tailwindcss@3.4.16)
-      '@types/typed.js':
-        specifier: ^2.0.9
-        version: 2.0.9
       framer-motion:
         specifier: ^11.0.0
         version: 11.15.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      i18next:
+        specifier: ^24.2.0
+        version: 24.2.0(typescript@5.3.3)
+      i18next-browser-languagedetector:
+        specifier: ^8.0.2
+        version: 8.0.2
       plasmo:
         specifier: 0.89.4
         version: 0.89.4(@swc/core@1.10.1(@swc/helpers@0.5.15))(@swc/helpers@0.5.15)(lodash@4.17.21)(postcss@8.4.49)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -32,6 +35,9 @@ importers:
       react-dom:
         specifier: 18.2.0
         version: 18.2.0(react@18.2.0)
+      react-i18next:
+        specifier: ^15.2.0
+        version: 15.2.0(i18next@24.2.0(typescript@5.3.3))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react-markdown:
         specifier: ^8.0.7
         version: 8.0.7(@types/react@18.2.48)(react@18.2.0)
@@ -50,9 +56,6 @@ importers:
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.16
-      typed.js:
-        specifier: ^2.1.0
-        version: 2.1.0
       vfile:
         specifier: 5.3.7
         version: 5.3.7
@@ -1625,10 +1628,6 @@ packages:
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
 
-  '@types/typed.js@2.0.9':
-    resolution: {integrity: sha512-3dbzeNES/FpuafOHkp0K9MAr/oDI+2ehjt7Nco0thgGq8Om4kpubqPFTQinP6qVTlAHsrX7g5IGckx1tUejw2g==}
-    deprecated: This is a stub types definition. typed.js provides its own type definitions, so you don't need this installed.
-
   '@types/unist@2.0.11':
     resolution: {integrity: sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA==}
 
@@ -2354,6 +2353,9 @@ packages:
   hastscript@7.2.0:
     resolution: {integrity: sha512-TtYPq24IldU8iKoJQqvZOuhi5CyCQRAbvDOX0x1eW6rsHSxa/1i2CCiptNTotGHJ3VoHRGmqiv6/D3q113ikkw==}
 
+  html-parse-stringify@3.0.1:
+    resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
+
   html-void-elements@2.0.1:
     resolution: {integrity: sha512-0quDb7s97CfemeJAnW9wC0hw78MtW7NU3hqtCD75g2vFlDLt36llsYD7uB7SUzojLMP24N5IatXf7ylGXiGG9A==}
 
@@ -2399,6 +2401,17 @@ packages:
   human-signals@2.1.0:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
+
+  i18next-browser-languagedetector@8.0.2:
+    resolution: {integrity: sha512-shBvPmnIyZeD2VU5jVGIOWP7u9qNG3Lj7mpaiPFpbJ3LVfHZJvVzKR4v1Cb91wAOFpNw442N+LGPzHOHsten2g==}
+
+  i18next@24.2.0:
+    resolution: {integrity: sha512-ArJJTS1lV6lgKH7yEf4EpgNZ7+THl7bsGxxougPYiXRTJ/Fe1j08/TBpV9QsXCIYVfdE/HWG/xLezJ5DOlfBOA==}
+    peerDependencies:
+      typescript: ^5
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
@@ -3269,6 +3282,19 @@ packages:
   react-error-overlay@6.0.9:
     resolution: {integrity: sha512-nQTTcUu+ATDbrSD1BZHr5kgSD4oF8OFjxun8uAaL8RwPBacGBNPf/yAuVVdx17N8XNzRDMrZ9XcKZHCjPW+9ew==}
 
+  react-i18next@15.2.0:
+    resolution: {integrity: sha512-iJNc8111EaDtVTVMKigvBtPHyrJV+KblWG73cUxqp+WmJCcwkzhWNFXmkAD5pwP2Z4woeDj/oXDdbjDsb3Gutg==}
+    peerDependencies:
+      i18next: '>= 23.2.3'
+      react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -3655,9 +3681,6 @@ packages:
     resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
     engines: {node: '>=12.20'}
 
-  typed.js@2.1.0:
-    resolution: {integrity: sha512-bDuXEf7YcaKN4g08NMTUM6G90XU25CK3bh6U0THC/Mod/QPKlEt9g/EjvbYB8x2Qwr2p6J6I3NrsoYaVnY6wsQ==}
-
   typescript@5.2.2:
     resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
     engines: {node: '>=14.17'}
@@ -3731,6 +3754,10 @@ packages:
 
   vfile@5.3.7:
     resolution: {integrity: sha512-r7qlzkgErKjobAmyNIkkSpizsFPYiUPuJb5pNW1RB4JcYVZhs4lIbVqk8XPk033CV/1z8ss5pkax8SuhGpcG8g==}
+
+  void-elements@3.1.0:
+    resolution: {integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==}
+    engines: {node: '>=0.10.0'}
 
   vue@3.3.4:
     resolution: {integrity: sha512-VTyEYn3yvIeY1Py0WaYGZsXnz3y5UnGi62GjVEqvEGPl6nxbOrCXbVOTQWBEJUqAyTUk2uJ5JLVnYJ6ZzGbrSw==}
@@ -5537,10 +5564,6 @@ snapshots:
 
   '@types/trusted-types@2.0.7': {}
 
-  '@types/typed.js@2.0.9':
-    dependencies:
-      typed.js: 2.1.0
-
   '@types/unist@2.0.11': {}
 
   '@vue/compiler-core@3.3.4':
@@ -6360,6 +6383,10 @@ snapshots:
       property-information: 6.5.0
       space-separated-tokens: 2.0.2
 
+  html-parse-stringify@3.0.1:
+    dependencies:
+      void-elements: 3.1.0
+
   html-void-elements@2.0.1: {}
 
   htmlnano@2.1.1(postcss@8.4.49)(svgo@2.8.0)(typescript@5.2.2):
@@ -6388,6 +6415,16 @@ snapshots:
       resolve-alpn: 1.2.1
 
   human-signals@2.1.0: {}
+
+  i18next-browser-languagedetector@8.0.2:
+    dependencies:
+      '@babel/runtime': 7.26.0
+
+  i18next@24.2.0(typescript@5.3.3):
+    dependencies:
+      '@babel/runtime': 7.26.0
+    optionalDependencies:
+      typescript: 5.3.3
 
   iconv-lite@0.4.24:
     dependencies:
@@ -7428,6 +7465,15 @@ snapshots:
 
   react-error-overlay@6.0.9: {}
 
+  react-i18next@15.2.0(i18next@24.2.0(typescript@5.3.3))(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+    dependencies:
+      '@babel/runtime': 7.26.0
+      html-parse-stringify: 3.0.1
+      i18next: 24.2.0(typescript@5.3.3)
+      react: 18.2.0
+    optionalDependencies:
+      react-dom: 18.2.0(react@18.2.0)
+
   react-is@16.13.1: {}
 
   react-is@18.3.1: {}
@@ -7896,8 +7942,6 @@ snapshots:
 
   type-fest@2.19.0: {}
 
-  typed.js@2.1.0: {}
-
   typescript@5.2.2: {}
 
   typescript@5.3.3: {}
@@ -7988,6 +8032,8 @@ snapshots:
       is-buffer: 2.0.5
       unist-util-stringify-position: 3.0.3
       vfile-message: 3.1.4
+
+  void-elements@3.1.0: {}
 
   vue@3.3.4:
     dependencies:

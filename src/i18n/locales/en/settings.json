@@ -1,0 +1,80 @@
+{
+  "title": "Settings",
+  "tabs": {
+    "general": {
+      "name": "General",
+      "description": "Manage your general settings"
+    },
+    "model": {
+      "name": "Model",
+      "description": "Manage your model settings",
+      "provider": {
+        "label": "Model Provider",
+        "options": {
+          "openai": "OpenAI",
+          "google": "Google"
+        }
+      },
+      "apiKey": {
+        "label": "API Key",
+        "placeholder": "Enter your API key",
+        "toggle": {
+          "show": "Show",
+          "hide": "Hide"
+        }
+      },
+      "baseUrl": {
+        "label": "API Endpoint",
+        "placeholder": "Enter API endpoint",
+        "hint": "Default is https://api.openai.com/v1, supports third-party providers with OpenAI-compatible API"
+      },
+      "modelSelect": {
+        "label": "Model Selection",
+        "placeholder": "Select a model"
+      },
+      "language": {
+        "label": "Response Language",
+        "options": {
+          "zh": "Chinese",
+          "en": "English"
+        }
+      },
+      "actions": {
+        "validate": "Validate",
+        "save": "Save",
+        "saving": "Saving...",
+        "validating": "Validating..."
+      },
+      "messages": {
+        "validateSuccess": "Validation successful, models retrieved",
+        "validateFailed": "Validation failed",
+        "saveSuccess": "Configuration saved successfully",
+        "saveFailed": "Save failed",
+        "noModels": "No available models found, please check your configuration"
+      }
+    }
+  },
+  "general": {
+    "language": {
+      "label": "Language",
+      "options": {
+        "zh": "Chinese",
+        "en": "English"
+      }
+    },
+    "theme": {
+      "label": "Theme",
+      "options": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      }
+    },
+    "autoSummary": {
+      "label": "Auto Summary",
+      "description": "Automatically summarize article content",
+      "on": "On",
+      "off": "Off"
+    }
+  }
+} 

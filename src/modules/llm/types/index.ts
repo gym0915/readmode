@@ -14,6 +14,7 @@ export interface ILLMConfig {
  */
 export interface IModelInfo {
   id: string
+  name?: string
   object?: string
   created?: number
   owned_by?: string
