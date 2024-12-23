@@ -1,0 +1,80 @@
+@import './theme-variables.css';
+
+/* 基础样式 */
+body {
+  background-color: var(--theme-background);
+  color: var(--theme-text);
+  font-family: var(--theme-font-family);
+  font-size: var(--theme-font-size-base);
+}
+
+/* 链接样式 */
+a {
+  color: var(--theme-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--theme-secondary);
+}
+
+/* 边框样式 */
+.border {
+  border-color: var(--theme-border);
+}
+
+/* 按钮样式 */
+.btn {
+  background-color: var(--theme-primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: var(--theme-font-size-base);
+  cursor: pointer;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+.btn:hover {
+  background-color: var(--theme-secondary);
+}
+
+/* 输入框样式 */
+.input {
+  background-color: var(--theme-background);
+  color: var(--theme-text);
+  border: 1px solid var(--theme-border);
+  padding: 8px;
+  border-radius: 4px;
+  font-size: var(--theme-font-size-base);
+}
+
+/* 卡片样式 */
+.card {
+  background-color: var(--theme-background);
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* 文本样式 */
+.text-primary {
+  color: var(--theme-primary);
+}
+
+.text-secondary {
+  color: var(--theme-secondary);
+}
+
+/* 字体大小 */
+.text-small {
+  font-size: var(--theme-font-size-small);
+}
+
+.text-base {
+  font-size: var(--theme-font-size-base);
+}
+
+.text-large {
+  font-size: var(--theme-font-size-large);
+} 

@@ -3,6 +3,7 @@ import { LLMConfig } from "~/pages/options/components/LLMConfig"
 import { GeneralConfig } from "~/pages/options/components/GeneralConfig"
 import logo from "data-base64:~/assets/icons/logo.svg"
 import { IconRobot, IconSettings } from "@tabler/icons-react"
+import { useTheme } from "../../shared/hooks/useTheme"
 
 // 定义导航项接口
 interface NavItem {
@@ -12,9 +13,10 @@ interface NavItem {
   component: React.ReactNode
 }
 
-// 修改导出方式
 const Options: React.FC = () => {
-  // 记录组件初始化日志
+  // 使用主题hook
+  useTheme();
+
   const navItems: NavItem[] = [
     {
       id: "general",
@@ -35,44 +37,36 @@ const Options: React.FC = () => {
   // 处理 URL hash 变化
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.slice(1) // 移除 '#' 符号
+      const hash = window.location.hash.slice(1)
       const targetTab = navItems.find(item => item.id === hash)
       if (targetTab) {
         setActiveTab(targetTab.id)
       }
     }
 
-    // 初始化时处理 hash
     handleHashChange()
-
-    // 监听 hash 变化
     window.addEventListener('hashchange', handleHashChange)
-
-    // 清理监听器
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange)
-    }
+    return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
   // 处理标签切换
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId)
-    window.location.hash = tabId // 更新 URL hash
+    window.location.hash = tabId
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* 设置面板容器 */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mx-auto max-w-[1000px]">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mx-auto max-w-[1000px]">
           <div className="flex">
             {/* 左侧导航栏 */}
-            <div className="w-64 border-r border-gray-200">
+            <div className="w-64 border-r border-gray-200 dark:border-gray-700">
               {/* Logo 区域 */}
-              <div className="h-16 flex items-center px-6 border-b border-gray-200">
-                <img src={logo} alt="Readfun Logo" className="w-8 h-8 mr-3" />
-                <span className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-                  Readfun
+              <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700">
+                <img src={logo} alt="Logo" className="w-8 h-8 mr-3" />
+                <span className="text-xl font-semibold text-gray-900 dark:text-white">
+                  设置
                 </span>
               </div>
 
@@ -82,14 +76,14 @@ const Options: React.FC = () => {
                   <button
                     key={item.id}
                     onClick={() => handleTabChange(item.id)}
-                    className={`w-full flex items-center px-6 py-3 text-sm font-medium transition-colors duration-150 ${
+                    className={`w-full flex items-center px-6 py-3 text-sm font-medium transition-colors ${
                       activeTab === item.id
-                        ? "text-blue-600 bg-blue-50 border-r-2 border-blue-600"
-                        : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                        ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-600 dark:border-blue-400"
+                        : "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700/30"
                     }`}
                   >
-                    {item.icon}
-                    <span className="ml-3">{item.name}</span>
+                    <span className="mr-3">{item.icon}</span>
+                    {item.name}
                   </button>
                 ))}
               </nav>
@@ -100,31 +94,32 @@ const Options: React.FC = () => {
               <div className="py-8 px-8">
                 {/* 标题区域 */}
                 <div className="mb-8">
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {navItems.find((item) => item.id === activeTab)?.name}设置
                   </h1>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     管理您的{navItems.find((item) => item.id === activeTab)?.name}配置
                   </p>
                 </div>
 
                 {/* 内容区域 */}
                 <div>
-                  {navItems.find((item) => item.id === activeTab)?.component}
+                  {navItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className={activeTab === item.id ? 'block' : 'hidden'}
+                    >
+                      {item.component}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* 页脚版本信息 */}
-        <div className="text-center mt-6 text-sm text-gray-500">
-          Version {process.env.VERSION || '0.0.1'}
         </div>
       </div>
     </div>
   )
 }
 
-// 只使用默认导出，避免混合导出方式
 export default Options 

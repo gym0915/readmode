@@ -216,7 +216,7 @@ export const LLMConfig: React.FC = () => {
     <div className="space-y-6 p-6">
       {/* Provider 选择 */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
           AI Provider
         </label>
         <div className="grid grid-cols-2 gap-4">
@@ -224,8 +224,8 @@ export const LLMConfig: React.FC = () => {
             onClick={() => setSelectedProvider('openai')}
             className={`flex items-center justify-center px-4 py-3 border rounded-lg transition-colors ${
               selectedProvider === 'openai'
-                ? 'border-blue-500 bg-blue-50 text-blue-600'
-                : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
+                ? 'border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
             }`}
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
@@ -237,8 +237,8 @@ export const LLMConfig: React.FC = () => {
             onClick={() => setSelectedProvider('google')}
             className={`flex items-center justify-center px-4 py-3 border rounded-lg transition-colors ${
               selectedProvider === 'google'
-                ? 'border-blue-500 bg-blue-50 text-blue-600'
-                : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
+                ? 'border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
             }`}
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
@@ -254,20 +254,20 @@ export const LLMConfig: React.FC = () => {
 
       {/* API Key 输入框 */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
           API Key
         </label>
         <div className="relative">
           <input
             type={showApiKey ? "text" : "password"}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100"
             placeholder={`请输入 ${selectedProvider === 'openai' ? 'OpenAI' : 'Google'} API Key`}
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
           />
           <button
             type="button"
-            className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
+            className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
             onClick={() => setShowApiKey(!showApiKey)}
           >
             {showApiKey ? (
@@ -287,13 +287,13 @@ export const LLMConfig: React.FC = () => {
       {/* Base URL 输入框和验证按钮 */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
             Base URL
           </label>
           <input
             type="text"
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-            placeholder={`请输入 Base URL`}
+            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100"
+            placeholder="请输入 Base URL"
             value={baseUrl}
             onChange={(e) => setBaseUrl(e.target.value)}
           />
@@ -323,11 +323,11 @@ export const LLMConfig: React.FC = () => {
       {/* 模型选择下拉框 */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
             Model
           </label>
           <select
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100"
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
           >
@@ -342,7 +342,7 @@ export const LLMConfig: React.FC = () => {
 
         {/* 语言设置 */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
             返回语言
           </label>
           <div className="space-y-2">
@@ -351,18 +351,18 @@ export const LLMConfig: React.FC = () => {
                 type="radio"
                 checked={selectedLanguage === 'zh'}
                 onChange={() => setSelectedLanguage('zh')}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700">中文</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">中文</span>
             </label>
             <label className="flex items-center space-x-3">
               <input
                 type="radio"
                 checked={selectedLanguage === 'en'}
                 onChange={() => setSelectedLanguage('en')}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700">English</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">English</span>
             </label>
           </div>
         </div>

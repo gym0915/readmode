@@ -1,3 +1,19 @@
+@import './styles/theme.css';
+
+/* 重置默认样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 确保html和body占满整个视口 */
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+/* 其他全局样式 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities; 

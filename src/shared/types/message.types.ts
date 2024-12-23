@@ -16,6 +16,7 @@ export type MessageType =
   | 'STREAM_CHUNK'
   | 'STREAM_ERROR'
   | 'STREAM_DONE'
+  | 'THEME_CHANGED'
 
 /**
  * 基础消息接口
@@ -182,3 +183,11 @@ export type Message =
   | ChatResponseMessage
   | GetLLMConfigMessage
   | GetLLMConfigResponse
+  | ThemeMessage
+
+import type { IThemeConfig } from './theme'
+
+export interface ThemeMessage {
+  type: 'THEME_CHANGED'
+  theme: IThemeConfig
+}

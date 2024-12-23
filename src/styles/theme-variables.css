@@ -1,0 +1,32 @@
+:root {
+  /* 基础主题变量 */
+  --theme-primary: #1677ff;
+  --theme-secondary: #69b1ff;
+  --theme-background: #ffffff;
+  --theme-text: #1f2937;
+  --theme-border: #e5e7eb;
+  
+  /* 字体变量 */
+  --theme-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --theme-font-size-small: 12px;
+  --theme-font-size-base: 14px;
+  --theme-font-size-large: 16px;
+
+  /* 过渡动画 */
+  --theme-transition-duration: 0.3s;
+  --theme-transition-timing: ease;
+}
+
+/* 暗色主题变量 */
+:root.dark {
+  --theme-background: #1f2937;
+  --theme-text: #ffffff;
+  --theme-border: #374151;
+}
+
+/* 主题切换过渡动画 */
+*, *::before, *::after {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+              color var(--theme-transition-duration) var(--theme-transition-timing),
+              border-color var(--theme-transition-duration) var(--theme-transition-timing);
+} 

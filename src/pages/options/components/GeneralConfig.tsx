@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react"
-import { createLogger, ELogLevel } from "~/shared/utils/logger"
-import { IndexedDBManager } from "~/shared/utils/indexed-db"
-import { MessageHandler } from "~/shared/utils/message"
+import React, { useState, useCallback, useEffect } from 'react'
+import { IndexedDBManager } from '../../../shared/utils/indexed-db'
+import { createLogger } from '../../../shared/utils/logger'
+import { MessageHandler } from '../../../shared/utils/message'
+import { GENERAL_CONFIG_KEY, STORE_NAME } from '../../../shared/constants/storage'
+import { useTheme } from '../../../shared/hooks/useTheme'
+import { EThemeMode } from '../../../types/theme'
+import { DARK_THEME, LIGHT_THEME } from '../../../shared/constants/theme'
 
-const logger = createLogger("GeneralConfig", ELogLevel.DEBUG)
+const logger = createLogger('general-config')
 const messageHandler = MessageHandler.getInstance()
-const GENERAL_CONFIG_KEY = "generalConfig"
-const STORE_NAME = "generalConfig"
 
 interface GeneralConfig {
   theme: 'light' | 'dark'
@@ -17,10 +19,10 @@ interface GeneralConfig {
 export const GeneralConfig: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [autoSummary, setAutoSummary] = useState(false)
-  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>('light')
   const [selectedLanguage, setSelectedLanguage] = useState('zh')
+  const { theme, setTheme } = useTheme()
 
-  // 加载保存的配置
+  // 加载非主题配置
   useEffect(() => {
     const loadConfig = async () => {
       try {
@@ -29,7 +31,6 @@ export const GeneralConfig: React.FC = () => {
         const savedConfig = await indexedDB.getData(GENERAL_CONFIG_KEY, STORE_NAME) as GeneralConfig | undefined
         
         if (savedConfig) {
-          setSelectedTheme(savedConfig.theme)
           setAutoSummary(savedConfig.autoSummary)
           setSelectedLanguage(savedConfig.language)
           logger.debug('已加载通用配置', savedConfig)
@@ -42,13 +43,13 @@ export const GeneralConfig: React.FC = () => {
     void loadConfig()
   }, [])
 
-  // 保存配置
+  // 保存非主题配置
   const handleSave = async () => {
     logger.debug('开始保存配置...')
     setIsSaving(true)
     try {
       const config: GeneralConfig = {
-        theme: selectedTheme,
+        theme: theme.mode === EThemeMode.DARK ? 'dark' : 'light',
         autoSummary,
         language: selectedLanguage as 'zh' | 'en'
       }
@@ -73,12 +74,18 @@ export const GeneralConfig: React.FC = () => {
     }
   }
 
+  // 处理主题切换
+  const handleThemeChange = (newTheme: typeof LIGHT_THEME | typeof DARK_THEME) => {
+    setTheme(newTheme)
+    messageHandler.success('主题已更新')
+  }
+
   // 修改自动总结设置的保存逻辑
   const handleAutoSummaryChange = useCallback(async (enabled: boolean) => {
     try {
       setAutoSummary(enabled)
       const config: GeneralConfig = {
-        theme: selectedTheme,
+        theme: theme.mode === EThemeMode.DARK ? 'dark' : 'light',
         autoSummary: enabled,
         language: selectedLanguage as 'zh' | 'en'
       }
@@ -93,33 +100,33 @@ export const GeneralConfig: React.FC = () => {
       logger.error('保存自动总结设置失败:', error)
       messageHandler.error('保存失败')
     }
-  }, [selectedTheme, selectedLanguage])
+  }, [theme.mode, selectedLanguage])
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="space-y-6">
       {/* 主题设置 */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
             主题设置
           </label>
           <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={() => setSelectedTheme('light')}
+              onClick={() => handleThemeChange(LIGHT_THEME)}
               className={`flex items-center justify-center px-4 py-3 border rounded-lg transition-colors ${
-                selectedTheme === 'light'
-                  ? 'border-blue-500 bg-blue-50 text-blue-600'
-                  : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
+                theme.mode === EThemeMode.LIGHT
+                  ? 'border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
               }`}
             >
               <span className="text-sm font-medium">日间模式</span>
             </button>
             <button
-              onClick={() => setSelectedTheme('dark')}
+              onClick={() => handleThemeChange(DARK_THEME)}
               className={`flex items-center justify-center px-4 py-3 border rounded-lg transition-colors ${
-                selectedTheme === 'dark'
-                  ? 'border-blue-500 bg-gray-900 text-white'
-                  : 'border-gray-200 bg-gray-900 hover:bg-gray-800 text-white'
+                theme.mode === EThemeMode.DARK
+                  ? 'border-blue-500 bg-gray-900 text-white dark:bg-blue-900/20 dark:text-blue-400'
+                  : 'border-gray-200 dark:border-gray-700 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white'
               }`}
             >
               <span className="text-sm font-medium">夜间模式</span>
@@ -130,17 +137,17 @@ export const GeneralConfig: React.FC = () => {
 
       {/* 自动总结设置 */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
           自动总结
         </label>
-        <div className="flex items-center justify-between px-4 py-2 border border-gray-200 rounded-lg">
-          <span className="text-sm text-gray-700">自动总结文章内容</span>
+        <div className="flex items-center justify-between px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+          <span className="text-sm text-gray-700 dark:text-gray-300">自动总结文章内容</span>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-500">{autoSummary ? '开启' : '关闭'}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">{autoSummary ? '开启' : '关闭'}</span>
             <button
               onClick={() => handleAutoSummaryChange(!autoSummary)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
-                autoSummary ? 'bg-blue-600' : 'bg-gray-200'
+                autoSummary ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
               }`}
             >
               <span
@@ -155,7 +162,7 @@ export const GeneralConfig: React.FC = () => {
 
       {/* 语言设置 */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
           语言设置
         </label>
         <div className="space-y-2">
@@ -164,23 +171,23 @@ export const GeneralConfig: React.FC = () => {
               type="radio"
               checked={selectedLanguage === 'zh'}
               onChange={() => setSelectedLanguage('zh')}
-              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">中文</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">中文</span>
           </label>
           <label className="flex items-center space-x-3">
             <input
               type="radio"
               checked={selectedLanguage === 'en'}
               onChange={() => setSelectedLanguage('en')}
-              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">English</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">English</span>
           </label>
         </div>
       </div>
 
-      {/* 保存按钮 */}
+      {/* 保存按钮 - 仅用于保存语言和自动总结设置 */}
       <div className="pt-4">
         <button
           className={`w-full px-4 py-2.5 rounded-lg font-medium text-white 
@@ -198,9 +205,9 @@ export const GeneralConfig: React.FC = () => {
               </svg>
               <span>保存中...</span>
             </div>
-          ) : '保存'}
+          ) : '保存语言和自动总结设置'}
         </button>
       </div>
     </div>
-  )
+  );
 } 
