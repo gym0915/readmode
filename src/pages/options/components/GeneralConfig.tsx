@@ -80,27 +80,10 @@ export const GeneralConfig: React.FC = () => {
     messageHandler.success('主题已更新')
   }
 
-  // 修改自动总结设置的保存逻辑
-  const handleAutoSummaryChange = useCallback(async (enabled: boolean) => {
-    try {
-      setAutoSummary(enabled)
-      const config: GeneralConfig = {
-        theme: theme.mode === EThemeMode.DARK ? 'dark' : 'light',
-        autoSummary: enabled,
-        language: selectedLanguage as 'zh' | 'en'
-      }
-      
-      const indexedDB = IndexedDBManager.getInstance()
-      await indexedDB.initialize()
-      await indexedDB.saveData(GENERAL_CONFIG_KEY, config, STORE_NAME)
-      
-      logger.debug('自动总结设置已保存', config)
-      messageHandler.success('设置已保存')
-    } catch (error) {
-      logger.error('保存自动总结设置失败:', error)
-      messageHandler.error('保存失败')
-    }
-  }, [theme.mode, selectedLanguage])
+  // 修改自动总结设置的切换逻辑
+  const handleAutoSummaryChange = useCallback((enabled: boolean) => {
+    setAutoSummary(enabled)
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -187,7 +170,7 @@ export const GeneralConfig: React.FC = () => {
         </div>
       </div>
 
-      {/* 保存按钮 - 仅用于保存语言和自动总结设置 */}
+      {/* 保存按钮 - 用于保存语言和自动总结设置 */}
       <div className="pt-4">
         <button
           className={`w-full px-4 py-2.5 rounded-lg font-medium text-white 
@@ -205,7 +188,7 @@ export const GeneralConfig: React.FC = () => {
               </svg>
               <span>保存中...</span>
             </div>
-          ) : '保存语言和自动总结设置'}
+          ) : '保存设置'}
         </button>
       </div>
     </div>
