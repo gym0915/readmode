@@ -15,6 +15,7 @@ import remarkGfm from 'remark-gfm'
 import { MessageService } from '~/core/services/message.service'
 import Typed from 'typed.js'
 import { icons } from '~/assets/icons'
+import { useI18n } from '~/i18n/hooks/useI18n'
 
 const logger = createLogger('SummarySidebar', ELogLevel.DEBUG)
 const messageHandler = MessageHandler.getInstance()
@@ -35,6 +36,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
   const [isStreaming, setIsStreaming] = useState(false)
   const typedRef = useRef<Typed | null>(null);
   const typedElementRef = useRef<HTMLDivElement>(null);
+  const { t } = useI18n('reader')
 
   // 清理 Typed 实例
   const cleanupTyped = useCallback(() => {
@@ -83,7 +85,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
     }
   }, []);
 
-  // 在组件卸载时清理
+  // 在组件卸载时���理
   useEffect(() => {
     return () => {
       cleanupTyped();
@@ -131,7 +133,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           setSummary(accumulatedContent);
         } else if (message.type === 'STREAM_ERROR') {
           setHasError(true);
-          setErrorMessage(message.error || '生成总结失败');
+          setErrorMessage(t('summary.error.generate'));
           logger.error('响应错误:', message.error);
           setIsLoading(false);
         } else if (message.type === 'STREAM_DONE') {
@@ -156,7 +158,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           const error = chrome.runtime.lastError;
           logger.error('连接错误:', error);
           setHasError(true);
-          setErrorMessage('连接已断开，请重试');
+          setErrorMessage(t('summary.error.connection'));
           setIsLoading(false);
         }
       });
@@ -195,7 +197,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
     } catch (error) {
       logger.error('检查配置失败:', error);
       setHasError(true);
-      setErrorMessage('配置检查失败');
+      setErrorMessage(t('summary.error.config'));
       setIsLoading(false);
       return;
     } finally {
@@ -208,7 +210,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
         }
       };
     }
-  }, [article, cleanupTyped]); // 添加必要的依赖
+  }, [article, cleanupTyped, t]); // 添加必要的依赖
 
   // 使用 useEffect 调用 initialize
   useEffect(() => {
@@ -280,7 +282,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
             </svg>
           </div>
           <div className={styles.loadingText}>
-            正在生成总结<span className={styles.dots}>...</span>
+            {t('summary.loading.generating')}
           </div>
         </div>
       )
@@ -295,13 +297,13 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
               onClick={handleOpenOptions}
               className={styles.configButton}
             >
-              前往配置
+              {t('summary.button.configure')}
             </button>
             <button 
               onClick={handleRefresh} 
               className={styles.retryButton}
             >
-              重试
+              {t('summary.button.retry')}
             </button>
           </div>
         </div>
@@ -313,13 +315,13 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
         <div className={styles.configPrompt}>
           <div className={styles.promptIcon}>⚙️</div>
           <p className={styles.promptDesc}>
-            需要配置 AI 模型才能使用总结功能
+            {t('summary.config.required')}
           </p>
           <button 
             onClick={handleOpenOptions}
             className={styles.configButton}
           >
-            前往配置
+            {t('summary.button.configure')}
           </button>
         </div>
       )
@@ -355,15 +357,15 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
               console.error('Logo 加载失败', e);
             }}
           />
-          <h2 className={styles.title}>Readfun</h2>
+          <h2 className={styles.title}>{t('summary.brand.name')}</h2>
         </div>
         <div className={styles.headerButtons}>
           <button 
             className={styles.refreshButton}
             onClick={handleRefresh}
             disabled={isLoading}
-            aria-label="重新总结"
-            data-tooltip="重新总结"
+            aria-label={t('summary.button.refresh')}
+            data-tooltip={t('summary.button.refresh')}
           >
             <svg
               width="20"
@@ -390,8 +392,8 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
           <button 
             className={styles.closeButton}
             onClick={onClose}
-            aria-label="关闭"
-            data-tooltip="关闭"
+            aria-label={t('summary.button.close')}
+            data-tooltip={t('summary.button.close')}
           >
             <svg
               width="20"
