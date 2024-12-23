@@ -1,7 +1,7 @@
 {
-  "name": "readmode-plasmo",
+  "name": "readfun",
   "displayName": "Readfun",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Make reading fun",
   "author": "gym0915@hotmail.com",
   "scripts": {

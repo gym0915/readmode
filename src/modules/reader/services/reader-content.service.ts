@@ -25,6 +25,7 @@ import * as React from 'react'
 import { createRoot } from 'react-dom/client'
 import { ReaderApp } from '../components/ReaderApp'
 import { IndexedDBManager } from '~/shared/utils/indexed-db'
+import { i18nService } from './i18n.service'
 
 const logger = createLogger('reader-content')
 const GENERAL_CONFIG_KEY = "generalConfig"
@@ -43,11 +44,14 @@ export class ReaderContentService {
   private root: HTMLDivElement | null = null
   private indexedDB: IndexedDBManager
 
+  private static instance: ReaderContentService
+
   constructor() {
     this.frameService = new ReaderFrameService()
     this.parserService = new ArticleParserService()
     this.articleCache = new ArticleCacheService()
     this.indexedDB = IndexedDBManager.getInstance()
+    void i18nService
   }
 
   /**

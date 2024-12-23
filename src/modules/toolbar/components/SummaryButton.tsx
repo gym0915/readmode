@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback } from 'react'
 import { messageService } from '~/core/services/message.service'
 import { createLogger } from '~/shared/utils/logger'
 import type { CheckLLMConfigResponse } from '~/shared/types/message.types'
