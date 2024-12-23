@@ -1,1 +1,26 @@
-{} 
+{
+  "summary": {
+    "button": {
+      "title": "Article Summary",
+      "retry": "Retry",
+      "close": "Close",
+      "refresh": "Refresh Summary",
+      "configure": "Configure"
+    },
+    "loading": {
+      "generating": "Generating summary..."
+    },
+    "error": {
+      "process": "Failed to process summary request",
+      "generate": "Failed to generate summary",
+      "connection": "Connection lost, please retry",
+      "config": "Configuration check failed"
+    },
+    "config": {
+      "required": "AI model configuration required for summary feature"
+    },
+    "brand": {
+      "name": "Readfun"
+    }
+  }
+} 

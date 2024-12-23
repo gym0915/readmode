@@ -1,1 +1,26 @@
-{} 
+{
+  "summary": {
+    "button": {
+      "title": "文章总结",
+      "retry": "重试",
+      "close": "关闭",
+      "refresh": "重新总结",
+      "configure": "前往配置"
+    },
+    "loading": {
+      "generating": "正在生成总结..."
+    },
+    "error": {
+      "process": "处理总结请求失败",
+      "generate": "生成总结失败",
+      "connection": "连接已断开，请重试",
+      "config": "配置检查失败"
+    },
+    "config": {
+      "required": "需要配置 AI 模型才能使用总结功能"
+    },
+    "brand": {
+      "name": "Readfun"
+    }
+  }
+} 

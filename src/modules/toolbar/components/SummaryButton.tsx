@@ -5,6 +5,7 @@ import type { CheckLLMConfigResponse } from '~/shared/types/message.types'
 import { MessageHandler } from '~/shared/utils/message'
 import styles from '../styles/ToolBar.module.css'
 import { useReaderStore } from '~/modules/reader/store/reader'
+import { useI18n } from '~/i18n/hooks/useI18n'
 
 const logger = createLogger('summary-button')
 const messageHandler = MessageHandler.getInstance()
@@ -42,6 +43,7 @@ interface SummaryButtonProps {
 export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange, onClick }) => {
   const [isLoading, setIsLoading] = useState(false)
   const toggleSummary = useReaderStore((state) => state.toggleSummary)
+  const { t } = useI18n('reader')
 
   const handleClick = useCallback(async () => {
     if (isLoading) return
@@ -51,16 +53,16 @@ export const SummaryButton: React.FC<SummaryButtonProps> = ({ onVisibilityChange
       toggleSummary()
     } catch (error) {
       logger.error('处理总结请求失败:', error)
-      messageHandler.error('处理总结请求失败')
+      messageHandler.error(t('summary.error.process'))
     }
-  }, [isLoading, onClick, toggleSummary])
+  }, [isLoading, onClick, toggleSummary, t])
 
   return (
     <button 
       className={styles.toolbarButton}
       onClick={handleClick}
       disabled={isLoading}
-      data-tooltip="文章总结"
+      data-tooltip={t('summary.button.title')}
     >
       <SummaryIcon />
     </button>
