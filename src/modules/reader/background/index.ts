@@ -11,6 +11,7 @@ import { CryptoManager } from "~/shared/utils/crypto-manager"
 import { IndexedDBManager } from '~/shared/utils/indexed-db'
 import '~/i18n/config'
 import i18n from '~/i18n/config'
+import { icons } from '~/assets/icons'
 
 const logger = createLogger("background")
 const iconManager = new IconManagerService()
@@ -61,11 +62,29 @@ const loadLanguageConfig = async () => {
   }
 }
 
+// 更新扩展图标
+const updateExtensionIcon = async () => {
+  try {
+    await chrome.action.setIcon({
+      path: {
+        "16": icons["16"],
+        "32": icons["32"]
+      }
+    })
+    logger.debug('扩展图标已更新')
+  } catch (error) {
+    logger.error('更新扩展图标失败:', error)
+  }
+}
+
 // 初始化所有功能
 const initializeFeatures = async () => {
   try {
     // 初始化语言配置
     await loadLanguageConfig()
+
+    // 更新扩展图标
+    await updateExtensionIcon()
 
     // 初始化右键菜单
     if (chrome.contextMenus) {
@@ -99,6 +118,11 @@ const initializeFeatures = async () => {
 // 监听扩展安装或更新事件
 chrome.runtime.onInstalled.addListener(() => {
   initializeFeatures()
+})
+
+// 监听扩展重新加载事件
+chrome.runtime.onStartup.addListener(() => {
+  updateExtensionIcon()
 })
 
 // 监听标签页更新事件
