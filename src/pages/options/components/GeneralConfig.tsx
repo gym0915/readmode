@@ -22,7 +22,7 @@ export const GeneralConfig: React.FC = () => {
   const [autoSummary, setAutoSummary] = useState(false)
   const { theme, setTheme } = useTheme()
   const { t, changeLanguage, currentLanguage } = useI18n()
-  const [selectedLanguage, setSelectedLanguage] = useState(currentLanguage || 'zh')
+  const [selectedLanguage, setSelectedLanguage] = useState<'zh' | 'en'>('zh')
 
   // 加载非主题配置
   useEffect(() => {
@@ -37,9 +37,25 @@ export const GeneralConfig: React.FC = () => {
           setSelectedLanguage(savedConfig.language)
           await changeLanguage(savedConfig.language)
           logger.debug('已加载通用配置', savedConfig)
+        } else {
+          // 如果没有保存的配置，初始化默认配置
+          const defaultConfig: GeneralConfig = {
+            theme: theme.mode === EThemeMode.DARK ? 'dark' : 'light',
+            autoSummary: false,
+            language: 'zh'
+          }
+          
+          // 保存默认配置
+          await indexedDB.saveData(GENERAL_CONFIG_KEY, defaultConfig, STORE_NAME)
+          // 设置默认语言
+          await changeLanguage('zh')
+          logger.debug('已初始化默认配置', defaultConfig)
         }
       } catch (error) {
         logger.error('加载通用配置失败:', error)
+        // 即使出错也确保使用中文
+        setSelectedLanguage('zh')
+        void changeLanguage('zh')
       }
     }
 
@@ -86,7 +102,7 @@ export const GeneralConfig: React.FC = () => {
     messageHandler.success(t('messages.success'))
   }
 
-  // 修改自动总结设置的保存逻辑
+  // ���改自动总结设置的保存逻辑
   const handleAutoSummaryChange = (value: boolean) => {
     setAutoSummary(value)
   }
