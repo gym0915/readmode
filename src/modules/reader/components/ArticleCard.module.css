@@ -3,7 +3,7 @@
   width: 100% !important;
   height: 100% !important;
   overflow-y: auto !important;
-  padding: 2rem 1rem !important;
+  padding: 4rem 1rem !important;
   background: #ffffff !important;
   display: flex !important;
   justify-content: center !important;
@@ -96,6 +96,7 @@
   letter-spacing: 0.01em !important;
   position: relative !important;
   z-index: 3 !important;
+  padding-bottom: 6rem !important;
 }
 
 .content :global(h1),
@@ -145,11 +146,15 @@
 
 @media (max-width: 768px) {
   .cardContainer {
-    padding: 1rem 0.5rem;
+    padding: 0 0.5rem !important;
   }
 
   .card {
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 1rem !important;
+  }
+
+  .content {
+    padding-bottom: 6rem !important;
   }
 
   .title {
