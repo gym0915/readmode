@@ -158,6 +158,10 @@ chrome.action.onClicked.addListener(async (tab) => {
 
     const cachedArticle = articleCache.get(tab.id)
     if (cachedArticle) {
+      // 发送重置状态消息
+      await chrome.tabs.sendMessage(tab.id, { type: "RESET_READER_STATE" })
+      
+      // 切换阅读模式
       await chrome.tabs.sendMessage(tab.id, { 
         type: "TOGGLE_READER_MODE",
         article: cachedArticle 
@@ -428,7 +432,7 @@ async function prepareMessages(message: ChatRequestMessage, config: any) {
 4. 格式要求
    - 使用 Markdown 格式
    - 标题使用 ###
-   - 小标题使用***
+   - 小标题使用**
    - 列表使用-
    - 重要内容使用加粗或斜体`
       },

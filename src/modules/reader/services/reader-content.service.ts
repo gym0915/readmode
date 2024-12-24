@@ -76,7 +76,7 @@ export class ReaderContentService {
    * @private
    * @description
    * 这个方法注册了处理内容解析和阅读模式切换的消息监听器。
-   * 添加此方法的理由是为了集中管理所有与消息相关的逻辑,提高代码的可维护性。
+   * 添加此方法的理由是���了集中管理所有与消息相关的逻辑,提高代码的可维护性。
    */
   private registerMessageListeners(): void {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -86,6 +86,10 @@ export class ReaderContentService {
         this.handleParseContent(sendResponse)
       } else if (message.type === 'TOGGLE_READER_MODE') {
         this.handleToggleReaderMode(message.article, sendResponse)
+      } else if (message.type === 'RESET_READER_STATE') {
+        // 处理重置状态消息
+        this.resetReaderState()
+        sendResponse({ success: true })
       }
       
       return true

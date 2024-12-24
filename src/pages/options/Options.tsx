@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { LLMConfig } from "~/pages/options/components/LLMConfig"
 import { GeneralConfig } from "~/pages/options/components/GeneralConfig"
-import logo from "data-base64:~/assets/icons/logo.svg"
+import { icons } from "~/assets/icons"
 import { IconRobot, IconSettings } from "@tabler/icons-react"
 import { useTheme } from "../../shared/hooks/useTheme"
 import { useI18n } from "../../i18n/hooks/useI18n"
@@ -67,7 +67,11 @@ const Options: React.FC = () => {
             <div className="w-64 border-r border-gray-200 dark:border-gray-700">
               {/* Logo 区域 */}
               <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700">
-                <img src={logo} alt={t('app:name')} className="w-8 h-8 mr-3" />
+                <img 
+                  src={icons["128"]}
+                  alt={t('app:name')}
+                  className="w-8 h-8 mr-3"
+                />
                 <span className="text-xl font-semibold text-gray-900 dark:text-white">
                   {t('settings:title')}
                 </span>
