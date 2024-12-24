@@ -406,8 +406,7 @@ async function prepareMessages(message: ChatRequestMessage, config: any) {
    - 标题使用 ###
    - 小标题使用***
    - 列表使用-
-   - 重要内容使用加粗或斜体
-   - 关键数据使用引用格式`
+   - 重要内容使用加粗或斜体`
       },
       {
         role: 'user',

@@ -22,5 +22,10 @@
     "brand": {
       "name": "Readfun"
     }
+  },
+  "feedback": {
+    "button": {
+      "title": "Feedback"
+    }
   }
 } 

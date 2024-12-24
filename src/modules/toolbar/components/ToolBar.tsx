@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import styles from '../styles/ToolBar.module.css'
 import { SummaryButton } from './SummaryButton'
+import { FeedbackButton } from './FeedbackButton'
 import { AnimatePresence, motion } from 'framer-motion'
 
 /**
@@ -40,6 +41,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({
           onVisibilityChange={onVisibilityChange}
           onClick={onSummaryClick}
         />
+        <FeedbackButton />
       </div>
     </div>
   )
