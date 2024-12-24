@@ -25,6 +25,39 @@ interface SummarySidebarProps {
   onClose: () => void
 }
 
+// 添加 Markdown 渲染组件配置
+const MarkdownComponents = {
+  // 自定义代码块渲染
+  code({ node, inline, className, children, ...props }: any) {
+    const match = /language-(\w+)/.exec(className || '');
+    return !inline && match ? (
+      <pre className={styles.codeBlock}>
+        <code className={className} {...props}>
+          {children}
+        </code>
+      </pre>
+    ) : (
+      <code className={styles.inlineCode} {...props}>
+        {children}
+      </code>
+    );
+  },
+  // 自定义链接渲染
+  a({ node, children, href, ...props }: any) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.link}
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  }
+};
+
 export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose }) => {
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -85,7 +118,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
     }
   }, []);
 
-  // 在组件卸载时���理
+  // 在组件卸载时理
   useEffect(() => {
     return () => {
       cleanupTyped();
@@ -336,7 +369,11 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({ article, onClose
               className={styles.typedContent}
             />
           ) : (
-            <ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}  // 添加 GFM 支持
+              components={MarkdownComponents}  // 使用自定义组件
+              className={styles.markdown}
+            >
               {summary}
             </ReactMarkdown>
           )}

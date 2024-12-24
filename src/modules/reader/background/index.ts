@@ -411,7 +411,7 @@ async function prepareMessages(message: ChatRequestMessage, config: any) {
       },
       {
         role: 'user',
-        content: `请用${language}总结以下文章:\n\n标题: ${message.data.title}\n\n正文:\n${message.data.content}`
+        content: `请使用${language}总结以下文章:\n\n标题: ${message.data.title}\n\n正文:\n${message.data.content}`
       }
     ]
   } else {

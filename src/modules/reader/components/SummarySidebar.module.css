@@ -184,69 +184,96 @@
 }
 
 /* Markdown 样式 */
-.paragraph {
-  margin-bottom: 1.25rem;
+.markdown {
+  font-size: 1rem;
   line-height: 1.75;
+  color: #374151;
 }
 
-.heading1 {
+/* 标题样式 */
+.markdown h1 {
   font-size: 1.875rem;
   font-weight: 600;
   margin: 2rem 0 1rem;
   color: #111827;
 }
 
-.heading2 {
+.markdown h2 {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 1.75rem 0 0.875rem;
   color: #1f2937;
 }
 
-.heading3 {
+.markdown h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 1.5rem 0 0.75rem;
   color: #374151;
 }
 
-.list {
+/* 列表样式 */
+.markdown ul, 
+.markdown ol {
   margin: 1rem 0;
   padding-left: 1.5rem;
-  list-style-type: disc;
 }
 
-.orderedList {
-  margin: 1rem 0;
-  padding-left: 1.5rem;
-  list-style-type: decimal;
-}
-
-.listItem {
+.markdown li {
   margin-bottom: 0.5rem;
 }
 
-.inlineCode {
-  padding: 0.2em 0.4em;
-  background-color: #f3f4f6;
-  border-radius: 0.25rem;
-  font-family: ui-monospace, monospace;
-  font-size: 0.875em;
-}
-
+/* 代码块样式 */
 .codeBlock {
-  display: block;
-  padding: 1rem;
-  margin: 1rem 0;
   background-color: #f3f4f6;
   border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
   font-family: ui-monospace, monospace;
   font-size: 0.875em;
-  white-space: pre-wrap;
-  overflow-x: auto;
 }
 
-.blockquote {
+.inlineCode {
+  background-color: #f3f4f6;
+  border-radius: 0.25rem;
+  padding: 0.2em 0.4em;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875em;
+}
+
+/* 链接样式 */
+.link {
+  color: #2563eb;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.link:hover {
+  border-bottom-color: currentColor;
+}
+
+/* 表格样式 */
+.markdown table {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+}
+
+.markdown th,
+.markdown td {
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+
+.markdown th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+/* 引用块样式 */
+.markdown blockquote {
   margin: 1.5rem 0;
   padding-left: 1rem;
   border-left: 4px solid #e5e7eb;
