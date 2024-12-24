@@ -1,11 +1,20 @@
 import { createLogger } from '~/shared/utils/logger'
 import i18n from '~/i18n/config'
+import { IndexedDBManager } from '~/shared/utils/indexed-db'
+import { GENERAL_CONFIG_KEY, STORE_NAME } from '~/shared/constants/storage'
+
+// 添加 GeneralConfig 接口定义
+interface GeneralConfig {
+  theme: 'light' | 'dark'
+  autoSummary: boolean
+  language: 'zh' | 'en'
+}
 
 const logger = createLogger('i18n-service')
 
 class I18nService {
   private static instance: I18nService
-  private currentLanguage: string = 'en'
+  private currentLanguage: string = 'zh'
 
   private constructor() {
     this.initialize()
@@ -18,35 +27,39 @@ class I18nService {
     return I18nService.instance
   }
 
-  private initialize(): void {
-    // 监听语言变化消息
-    chrome.runtime.onMessage.addListener((message) => {
-      if (message.type === 'LANGUAGE_CHANGED' && message.data?.language) {
-        logger.debug('收到语言切换消息:', message.data.language)
-        this.updateLanguage(message.data.language)
-      }
-    })
-
-    // 初始化时获取当前语言设置
-    void this.loadCurrentLanguage()
-  }
-
-  private async loadCurrentLanguage(): Promise<void> {
+  private async initialize(): Promise<void> {
     try {
-      // 通过消息获取语言配置
-      const response = await chrome.runtime.sendMessage({ 
-        type: 'GET_GENERAL_CONFIG' 
-      })
+      // 1. 首先尝试从 IndexedDB 加载配置
+      const indexedDB = IndexedDBManager.getInstance()
+      await indexedDB.initialize()
+      const config = await indexedDB.getData(GENERAL_CONFIG_KEY, STORE_NAME) as GeneralConfig | undefined
       
-      if (response.error) {
-        throw new Error(response.error)
+      // 2. 如果有保存的配置，使用保存的语言
+      if (config?.language) {
+        await this.updateLanguage(config.language)
+      } else {
+        // 3. 如果没有配置，创建默认配置并保存
+        const defaultConfig: GeneralConfig = {
+          theme: 'light',
+          autoSummary: false,
+          language: 'zh'
+        }
+        await indexedDB.saveData(GENERAL_CONFIG_KEY, defaultConfig, STORE_NAME)
+        await this.updateLanguage('zh')
       }
 
-      const language = response.data?.language || 'en'
-      logger.debug('从 background 加载语言设置:', language)
-      await this.updateLanguage(language)
+      // 4. 监听语言变化消息
+      chrome.runtime.onMessage.addListener((message) => {
+        if (message.type === 'LANGUAGE_CHANGED' && message.data?.language) {
+          logger.debug('收到语言切换消息:', message.data.language)
+          void this.updateLanguage(message.data.language)
+        }
+      })
+
     } catch (error) {
-      logger.error('加载语言设置失败:', error)
+      logger.error('初始化 i18n 服务失败:', error)
+      // 出错时也确保使用中文
+      await this.updateLanguage('zh')
     }
   }
 
@@ -54,6 +67,15 @@ class I18nService {
     try {
       this.currentLanguage = language
       await i18n.changeLanguage(language)
+      
+      // 广播语言变化消息到所有组件
+      chrome.runtime.sendMessage({
+        type: 'LANGUAGE_CHANGED',
+        data: { language }
+      }).catch(error => {
+        logger.error('发送语言变化消息失败:', error)
+      })
+      
       logger.debug('语言更新成功:', language)
     } catch (error) {
       logger.error('更新语言失败:', error)

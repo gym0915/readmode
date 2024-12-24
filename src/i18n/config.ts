@@ -31,10 +31,18 @@ i18n
     fallbackLng: 'zh',
     defaultNS: 'common',
     ns: ['common', 'reader', 'settings'],
+    detection: {
+      order: ['querystring', 'localStorage', 'navigator'],
+      lookupLocalStorage: 'i18nextLng',
+      caches: ['localStorage'],
+    },
     interpolation: {
       escapeValue: false,
     },
     debug: true,
   });
+
+// 强制设置默认语言为中文
+i18n.changeLanguage('zh');
 
 export default i18n; 

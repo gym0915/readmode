@@ -32,18 +32,35 @@ const loadLanguageConfig = async () => {
 
 // 初始化应用
 const initializeApp = async () => {
-  await loadLanguageConfig()
-  
-  const root = document.getElementById("root")
-  if (root) {
-    createRoot(root).render(
-      <React.StrictMode>
-        <Options />
-        <ToastContainer />
-      </React.StrictMode>
-    )
+  try {
+    // 1. 首先尝试加载保存的语言配置
+    const indexedDB = IndexedDBManager.getInstance()
+    await indexedDB.initialize()
+    const config = await indexedDB.getData(GENERAL_CONFIG_KEY, STORE_NAME)
+    
+    // 2. 如果有配置就使用配置的语言，否则使用中文
+    const language = config?.language || 'zh'
+    await i18n.changeLanguage(language)
+    logger.debug('初始化语言设置:', language)
+    
+    // 3. 渲染应用
+    const root = document.getElementById("root")
+    if (root) {
+      createRoot(root).render(
+        <React.StrictMode>
+          <Options />
+          <ToastContainer />
+        </React.StrictMode>
+      )
+    }
+  } catch (error) {
+    logger.error('初始化应用失败:', error)
+    // 出错时使用中文
+    await i18n.changeLanguage('zh')
   }
 }
 
-// 启动应用
-void initializeApp() 
+// 确保在 DOMContentLoaded 后初始化
+document.addEventListener('DOMContentLoaded', () => {
+  void initializeApp()
+}) 

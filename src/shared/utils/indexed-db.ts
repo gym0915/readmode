@@ -157,4 +157,15 @@ export class IndexedDBManager {
       }
     })
   }
+
+  public isConnected(): boolean {
+    return this.db !== null
+  }
+
+  public closeConnection(): void {
+    if (this.db) {
+      this.db.close()
+      this.db = null
+    }
+  }
 } 
