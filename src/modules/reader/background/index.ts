@@ -11,7 +11,7 @@ import { CryptoManager } from "~/shared/utils/crypto-manager"
 import { IndexedDBManager } from '~/shared/utils/indexed-db'
 import '~/i18n/config'
 import i18n from '~/i18n/config'
-import { icons } from '~/assets/icons'
+import { icons } from "~/assets/icons"
 
 const logger = createLogger("background")
 const iconManager = new IconManagerService()
