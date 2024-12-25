@@ -35,12 +35,31 @@ export class Logger {
     hour12: false
   });
 
+  // 添加全局开关
+  private static globalEnabled: boolean = false;
+
   constructor(module: string, level: ELogLevel = ELogLevel.INFO) {
     this.config = {
       level,
       module,
       enabled: true
     };
+  }
+
+  /**
+   * 设置全局日志开关
+   * @param {boolean} enabled - 是否启用日志
+   */
+  public static setGlobalEnabled(enabled: boolean): void {
+    Logger.globalEnabled = enabled;
+  }
+
+  /**
+   * 获取全局日志开关状态
+   * @returns {boolean} 当前是否启用日志
+   */
+  public static isGlobalEnabled(): boolean {
+    return Logger.globalEnabled;
   }
 
   /**
@@ -58,7 +77,7 @@ export class Logger {
    * @param {any} [data] - 附加数据
    */
   debug(message: string, data?: any): void {
-    if (!this.config.enabled || this.config.level > ELogLevel.DEBUG) return;
+    if (!Logger.globalEnabled || !this.config.enabled || this.config.level > ELogLevel.DEBUG) return;
     console.debug(this.formatMessage(ELogLevel.DEBUG, message), data || '');
   }
 
@@ -68,7 +87,7 @@ export class Logger {
    * @param {any} [data] - 附加数据
    */
   info(message: string, data?: any): void {
-    if (!this.config.enabled || this.config.level > ELogLevel.INFO) return;
+    if (!Logger.globalEnabled || !this.config.enabled || this.config.level > ELogLevel.INFO) return;
     console.info(this.formatMessage(ELogLevel.INFO, message), data || '');
   }
 
@@ -78,7 +97,7 @@ export class Logger {
    * @param {any} [data] - 附加数据
    */
   warn(message: string, data?: any): void {
-    if (!this.config.enabled || this.config.level > ELogLevel.WARN) return;
+    if (!Logger.globalEnabled || !this.config.enabled || this.config.level > ELogLevel.WARN) return;
     console.warn(this.formatMessage(ELogLevel.WARN, message), data || '');
   }
 
@@ -88,7 +107,7 @@ export class Logger {
    * @param {any} [data] - 附加数据
    */
   error(message: string, data?: any): void {
-    if (!this.config.enabled || this.config.level > ELogLevel.ERROR) return;
+    if (!Logger.globalEnabled || !this.config.enabled || this.config.level > ELogLevel.ERROR) return;
     console.error(this.formatMessage(ELogLevel.ERROR, message), data || '');
   }
 

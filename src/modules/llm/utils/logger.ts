@@ -36,9 +36,26 @@ export interface ILogData {
 export class Logger {
   private module: string
   private static instances: Map<string, Logger> = new Map()
+  private static enabled: boolean = false
 
   private constructor(module: string) {
     this.module = module
+  }
+
+  /**
+   * 设置日志开关状态
+   * @param enabled - 是否启用日志
+   */
+  public static setEnabled(enabled: boolean): void {
+    Logger.enabled = enabled
+  }
+
+  /**
+   * 获取日志开关状态
+   * @returns 当前日志是否启用
+   */
+  public static isEnabled(): boolean {
+    return Logger.enabled
   }
 
   /**
@@ -81,6 +98,7 @@ export class Logger {
    * ```
    */
   public debug(message: string, data?: ILogData): void {
+    if (!Logger.enabled) return
     if (process.env.NODE_ENV === 'development') {
       console.debug(this.formatMessage(LogLevel.DEBUG, message, data))
     }
@@ -96,6 +114,7 @@ export class Logger {
    * ```
    */
   public info(message: string, data?: ILogData): void {
+    if (!Logger.enabled) return
     console.info(this.formatMessage(LogLevel.INFO, message, data))
   }
 
@@ -109,6 +128,7 @@ export class Logger {
    * ```
    */
   public warn(message: string, data?: ILogData): void {
+    if (!Logger.enabled) return
     console.warn(this.formatMessage(LogLevel.WARN, message, data))
   }
 
@@ -122,6 +142,7 @@ export class Logger {
    * ```
    */
   public error(message: string, data?: ILogData): void {
+    if (!Logger.enabled) return
     console.error(this.formatMessage(LogLevel.ERROR, message, data))
   }
 } 
