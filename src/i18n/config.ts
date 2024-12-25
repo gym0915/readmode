@@ -39,10 +39,7 @@ i18n
     interpolation: {
       escapeValue: false,
     },
-    debug: true,
+    debug: process.env.NODE_ENV === 'development',
   });
-
-// 强制设置默认语言为中文
-i18n.changeLanguage('zh');
 
 export default i18n; 

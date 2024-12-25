@@ -68,7 +68,21 @@ class I18nService {
       this.currentLanguage = language
       await i18n.changeLanguage(language)
       
-      // 广播语言变化消息到所有组件
+      // 广播语言变化消息到所有组件和页面
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => {
+          if (tab.id) {
+            chrome.tabs.sendMessage(tab.id, {
+              type: 'LANGUAGE_CHANGED',
+              data: { language }
+            }).catch(error => {
+              logger.error('发送语言变化消息到标签页失败:', error)
+            })
+          }
+        })
+      })
+
+      // 同时发送消息到扩展内部
       chrome.runtime.sendMessage({
         type: 'LANGUAGE_CHANGED',
         data: { language }
@@ -84,6 +98,11 @@ class I18nService {
 
   public getCurrentLanguage(): string {
     return this.currentLanguage
+  }
+
+  // 添加公共方法用于切换语言
+  public async changeLanguage(language: 'zh' | 'en'): Promise<void> {
+    await this.updateLanguage(language)
   }
 }
 

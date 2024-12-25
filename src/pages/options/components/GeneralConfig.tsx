@@ -7,6 +7,7 @@ import { useTheme } from '../../../shared/hooks/useTheme'
 import { useI18n } from '../../../i18n/hooks/useI18n'
 import { EThemeMode } from '../../../types/theme'
 import { DARK_THEME, LIGHT_THEME } from '../../../shared/constants/theme'
+import { i18nService } from '../../../modules/reader/services/i18n.service'
 
 const logger = createLogger('general-config')
 const messageHandler = MessageHandler.getInstance()
@@ -102,14 +103,35 @@ export const GeneralConfig: React.FC = () => {
     messageHandler.success(t('messages.success'))
   }
 
-  // ���改自动总结设置的保存逻辑
+  // 改自动总结设置的保存逻辑
   const handleAutoSummaryChange = (value: boolean) => {
     setAutoSummary(value)
   }
 
   // 处理语言切换
   const handleLanguageChange = async (lang: 'zh' | 'en') => {
-    setSelectedLanguage(lang)
+    try {
+      setSelectedLanguage(lang)
+      
+      // 使用 i18nService 的公共方法处理语言切换
+      await i18nService.changeLanguage(lang)
+      
+      // 保存语言设置到 IndexedDB
+      const config: GeneralConfig = {
+        theme: theme.mode === EThemeMode.DARK ? 'dark' : 'light',
+        autoSummary,
+        language: lang
+      }
+      
+      const indexedDB = IndexedDBManager.getInstance()
+      await indexedDB.initialize()
+      await indexedDB.saveData(GENERAL_CONFIG_KEY, config, STORE_NAME)
+      
+      logger.debug('语言设置已更新并保存:', lang)
+    } catch (error) {
+      logger.error('切换语言失败:', error)
+      messageHandler.error(t('messages.error'))
+    }
   }
 
   return (
@@ -207,7 +229,7 @@ export const GeneralConfig: React.FC = () => {
         </div>
       </div>
 
-      {/* 保存按钮 - 调整上边距 */}
+      {/* ���存按钮 - 整上边距 */}
       <div className="pt-3">
         <button
           className={`w-full px-4 py-2.5 rounded-lg font-medium text-white 
