@@ -35,3 +35,6 @@ dist/
 !/assets/
 /assets/*
 !/assets/icons/
+
+# 忽略cursorrules文件
+.cursorrules
